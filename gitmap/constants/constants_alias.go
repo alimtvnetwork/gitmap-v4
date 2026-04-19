@@ -12,51 +12,57 @@ const (
 	SubCmdAliasSug  = "suggest"
 )
 
-// Alias table name (still legacy plural — renamed in Phase 1.2).
-const TableAliases = "Aliases"
+// Alias table name (v15: singular).
+const TableAlias = "Alias"
 
-// SQL: create Aliases table. FK now references the v15 Repo(RepoId).
-const SQLCreateAliases = `CREATE TABLE IF NOT EXISTS Aliases (
-	Id        INTEGER PRIMARY KEY AUTOINCREMENT,
+// Legacy alias table name (for migration detection only).
+const LegacyTableAliases = "Aliases"
+
+// SQL: create Alias table (v15: singular + AliasId PK + FK to Repo).
+const SQLCreateAlias = `CREATE TABLE IF NOT EXISTS Alias (
+	AliasId   INTEGER PRIMARY KEY AUTOINCREMENT,
 	Alias     TEXT NOT NULL UNIQUE,
 	RepoId    INTEGER NOT NULL REFERENCES Repo(RepoId) ON DELETE CASCADE,
 	CreatedAt TEXT DEFAULT CURRENT_TIMESTAMP
 )`
 
-// SQL: alias operations. Joins now hit Repo.RepoId per v15.
+// SQL: alias operations (v15: Alias table, AliasId PK, joins on Repo.RepoId).
 const (
-	SQLInsertAlias = `INSERT INTO Aliases (Alias, RepoId) VALUES (?, ?)`
+	SQLInsertAlias = `INSERT INTO Alias (Alias, RepoId) VALUES (?, ?)`
 
-	SQLUpdateAlias = `UPDATE Aliases SET RepoId = ? WHERE Alias = ?`
+	SQLUpdateAlias = `UPDATE Alias SET RepoId = ? WHERE Alias = ?`
 
-	SQLSelectAllAliases = `SELECT a.Id, a.Alias, a.RepoId, a.CreatedAt
-		FROM Aliases a ORDER BY a.Alias`
+	SQLSelectAllAliases = `SELECT a.AliasId, a.Alias, a.RepoId, a.CreatedAt
+		FROM Alias a ORDER BY a.Alias`
 
-	SQLSelectAliasByName = `SELECT a.Id, a.Alias, a.RepoId, a.CreatedAt
-		FROM Aliases a WHERE a.Alias = ?`
+	SQLSelectAliasByName = `SELECT a.AliasId, a.Alias, a.RepoId, a.CreatedAt
+		FROM Alias a WHERE a.Alias = ?`
 
-	SQLSelectAliasByRepoID = `SELECT a.Id, a.Alias, a.RepoId, a.CreatedAt
-		FROM Aliases a WHERE a.RepoId = ?`
+	SQLSelectAliasByRepoID = `SELECT a.AliasId, a.Alias, a.RepoId, a.CreatedAt
+		FROM Alias a WHERE a.RepoId = ?`
 
-	SQLDeleteAlias = `DELETE FROM Aliases WHERE Alias = ?`
+	SQLDeleteAlias = `DELETE FROM Alias WHERE Alias = ?`
 
-	SQLSelectAliasWithRepo = `SELECT a.Id, a.Alias, a.RepoId, a.CreatedAt,
+	SQLSelectAliasWithRepo = `SELECT a.AliasId, a.Alias, a.RepoId, a.CreatedAt,
 		r.AbsolutePath, r.Slug
-		FROM Aliases a JOIN Repo r ON a.RepoId = r.RepoId
+		FROM Alias a JOIN Repo r ON a.RepoId = r.RepoId
 		WHERE a.Alias = ?`
 
-	SQLSelectAllAliasesWithRepo = `SELECT a.Id, a.Alias, a.RepoId, a.CreatedAt,
+	SQLSelectAllAliasesWithRepo = `SELECT a.AliasId, a.Alias, a.RepoId, a.CreatedAt,
 		r.AbsolutePath, r.Slug
-		FROM Aliases a JOIN Repo r ON a.RepoId = r.RepoId
+		FROM Alias a JOIN Repo r ON a.RepoId = r.RepoId
 		ORDER BY a.Alias`
 
 	SQLSelectUnaliasedRepos = `SELECT r.RepoId, r.Slug, r.RepoName
-		FROM Repo r LEFT JOIN Aliases a ON r.RepoId = a.RepoId
-		WHERE a.Id IS NULL ORDER BY r.Slug`
+		FROM Repo r LEFT JOIN Alias a ON r.RepoId = a.RepoId
+		WHERE a.AliasId IS NULL ORDER BY r.Slug`
 )
 
-// SQL: drop Aliases table.
-const SQLDropAliases = "DROP TABLE IF EXISTS Aliases"
+// SQL: drop Alias table (and legacy plural).
+const (
+	SQLDropAlias   = "DROP TABLE IF EXISTS Alias"
+	SQLDropAliases = "DROP TABLE IF EXISTS Aliases" // legacy
+)
 
 // Alias flag descriptions.
 const (
