@@ -65,6 +65,7 @@ func executeScan(dir string, cfg model.Config, outFile string, ghDesktop, openFo
 	writeAllOutputs(records, outputDir, outFile, quiet)
 	saveScanCache(outputDir, cache)
 	upsertToDB(records, outputDir)
+	tagReposWithScanFolder(absDir, records, quiet)
 	records = alignRecordsWithDB(records, outputDir)
 	detected := detectAllProjects(records)
 	writeProjectJSONFiles(detected, outputDir)
@@ -75,6 +76,41 @@ func executeScan(dir string, cfg model.Config, outFile string, ghDesktop, openFo
 
 	// Mark scan task as completed after all steps succeed.
 	completePendingTask(taskDB, taskID)
+}
+
+// tagReposWithScanFolder registers absDir as a ScanFolder and tags every
+// just-scanned repo with the resulting ScanFolderId. Failures are reported
+// to stderr but do NOT fail the scan — the underlying Repo rows still exist.
+func tagReposWithScanFolder(absDir string, records []model.ScanRecord, quiet bool) {
+	db, err := store.OpenDefault()
+	if err != nil {
+		fmt.Fprintf(os.Stderr, constants.ErrProbeOpenDB, err)
+		return
+	}
+	defer db.Close()
+	if err := db.Migrate(); err != nil {
+		fmt.Fprintln(os.Stderr, err.Error())
+		return
+	}
+
+	folder, err := db.EnsureScanFolder(absDir, "", "")
+	if err != nil {
+		fmt.Fprintln(os.Stderr, err.Error())
+		return
+	}
+
+	paths := make([]string, 0, len(records))
+	for _, r := range records {
+		paths = append(paths, r.AbsolutePath)
+	}
+	if err := db.TagReposByScanFolder(folder.ID, paths); err != nil {
+		fmt.Fprintln(os.Stderr, err.Error())
+		return
+	}
+
+	if !quiet {
+		fmt.Printf("✓ Tagged %d repo(s) with scan folder #%d\n", len(paths), folder.ID)
+	}
 }
 
 // upsertToDB persists scan results into the SQLite database.
