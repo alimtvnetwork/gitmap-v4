@@ -83,21 +83,6 @@ const (
 	CmdProbe                 = "probe"
 )
 
-// Clone shorthands.
-const (
-	ShorthandJSON = "json"
-	ShorthandCSV  = "csv"
-	ShorthandText = "text"
-)
-
-// CLI flag values.
-const FlagOpenValue = "--open"
-const FlagJSON = "--json"
-const FlagLimit = "--limit"
-const FlagSource = "--source"
-const FlagCompact = "--compact"
-const FlagGroups = "--groups"
-
 // Usage header.
 const UsageHeaderFmt = "gitmap v%s\n\n"
 
