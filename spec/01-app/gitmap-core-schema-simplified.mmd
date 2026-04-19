@@ -1,5 +1,5 @@
 ---
-title: GitMap Core Schema (Simplified) — v15 Phase 1.1
+title: GitMap Core Schema (Simplified) — v15 Phase 1.2
 ---
 erDiagram
     Repo {
@@ -19,8 +19,8 @@ erDiagram
         TEXT UpdatedAt
     }
 
-    Groups {
-        INTEGER Id PK
+    Group {
+        INTEGER GroupId PK
         TEXT Name UK
         TEXT Description
         TEXT Color
@@ -32,10 +32,19 @@ erDiagram
         INTEGER RepoId FK
     }
 
-    Aliases {
-        INTEGER Id PK
+    Alias {
+        INTEGER AliasId PK
         TEXT Alias UK
         INTEGER RepoId FK
+        TEXT CreatedAt
+    }
+
+    Bookmark {
+        INTEGER BookmarkId PK
+        TEXT Name UK
+        TEXT Command
+        TEXT Args
+        TEXT Flags
         TEXT CreatedAt
     }
 
@@ -50,8 +59,8 @@ erDiagram
         TEXT CreatedAt
     }
 
-    Releases {
-        INTEGER Id PK
+    Release {
+        INTEGER ReleaseId PK
         TEXT Version
         TEXT Tag UK
         TEXT Branch
@@ -67,7 +76,6 @@ erDiagram
     }
 
     Repo ||--o{ GroupRepo : "belongs to"
-    Groups ||--o{ GroupRepo : "contains"
-    Repo ||--o{ Aliases : "has"
+    Group ||--o{ GroupRepo : "contains"
+    Repo ||--o{ Alias : "has"
     Repo ||--o{ RepoVersionHistory : "tracks"
-    Repo ||--o{ Releases : "published"
