@@ -97,7 +97,7 @@ $configDeployedBinary = $null
 if (Test-Path $configPath) {
     $cfg = Get-Content $configPath | ConvertFrom-Json
     if ($cfg.deployPath) {
-	    $configDeployedBinary = Join-Path $cfg.deployPath "gitmap\gitmap.exe"
+	    $configDeployedBinary = Join-Path $cfg.deployPath "gitmap-cli\gitmap.exe"
     }
 }
 
@@ -105,13 +105,13 @@ $activeCmdForDeploy = Get-Command gitmap -ErrorAction SilentlyContinue
 if ($activeCmdForDeploy -and (Test-Path $activeCmdForDeploy.Source)) {
     $resolvedActiveBinary = (Resolve-Path $activeCmdForDeploy.Source).Path
     $resolvedActiveDir = Split-Path $resolvedActiveBinary -Parent
-    if ((Split-Path $resolvedActiveDir -Leaf) -eq "gitmap") {
+    if ((Split-Path $resolvedActiveDir -Leaf) -in @("gitmap-cli","gitmap")) {
         $effectiveDeployTarget = Split-Path $resolvedActiveDir -Parent
     } else {
         $effectiveDeployTarget = Split-Path $resolvedActiveDir -Parent
     }
     if ($effectiveDeployTarget) {
-        $deployedBinary = Join-Path $effectiveDeployTarget "gitmap\gitmap.exe"
+        $deployedBinary = Join-Path $effectiveDeployTarget "gitmap-cli\gitmap.exe"
     }
 }
 

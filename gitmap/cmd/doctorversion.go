@@ -69,7 +69,7 @@ func resolveDeployedVersionPath(data []byte) (string, string) {
 		return "", ""
 	}
 
-	deployedPath := filepath.Join(dp, constants.GitMapSubdir, bn)
+	deployedPath := filepath.Join(dp, constants.GitMapCliSubdir, bn)
 
 	return getBinaryVersion(deployedPath), deployedPath
 }

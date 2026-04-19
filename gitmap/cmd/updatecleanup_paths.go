@@ -106,12 +106,15 @@ func resolveCleanupDir(filePath string) string {
 }
 
 // deriveDeployAppDir mirrors run.ps1 PATH-derived deploy target resolution.
+// Recognises both the new "gitmap-cli" subdir and the legacy "gitmap" subdir
+// so cleanup keeps working during the v3.6.0 migration window.
 func deriveDeployAppDir(selfPath string) string {
 	selfDir := resolveCleanupDir(selfPath)
 	if len(selfDir) == 0 {
 		return ""
 	}
-	if filepath.Base(selfDir) == constants.GitMapSubdir {
+	base := filepath.Base(selfDir)
+	if base == constants.GitMapCliSubdir || base == constants.GitMapSubdir {
 		return selfDir
 	}
 
@@ -120,16 +123,16 @@ func deriveDeployAppDir(selfPath string) string {
 		return ""
 	}
 
-	return filepath.Join(parentDir, constants.GitMapSubdir)
+	return filepath.Join(parentDir, constants.GitMapCliSubdir)
 }
 
-// resolveConfigDeployAppDir returns the nested gitmap deploy directory from config.
+// resolveConfigDeployAppDir returns the nested gitmap-cli deploy directory from config.
 func resolveConfigDeployAppDir(deployPath string) string {
 	if len(deployPath) == 0 {
 		return ""
 	}
 
-	return filepath.Join(deployPath, constants.GitMapSubdir)
+	return filepath.Join(deployPath, constants.GitMapCliSubdir)
 }
 
 // resolveBuildOutputDir resolves the build output directory from repo root + config.
