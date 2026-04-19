@@ -15,7 +15,7 @@ Database schema follows v15: PascalCase + **singular** table names + `{TableName
 Unified `.gitmap/` directory structure at repository root for all artifacts.
 Clone-next flattens by default (v2.75.0+): clones into base name folder, tracks versions in RepoVersionHistory.
 Completion generator uses marker-comment opt-in (v3.0.0+): `// gitmap:cmd top-level` on const block, `// gitmap:cmd skip` per spec. CI `generate-check` enforces drift.
-Current version: v3.1.0.
+Current version: v3.4.0.
 
 ## Memories
 - [Code Constraints](mem://style/code-constraints) — Strict rules for code style, structure, and pull requests
