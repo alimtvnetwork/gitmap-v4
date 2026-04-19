@@ -2,18 +2,23 @@
 
 Schema design, migrations, query optimization, and connection management.
 
-## Schema Conventions
+## Schema Conventions (v15)
 
 | Element | Convention | Example |
 |---------|-----------|---------|
-| Table names | PascalCase | `UserRoles` |
+| Table names | PascalCase, **singular** | `Repo`, `Group`, `Release` |
 | Column names | PascalCase | `CreatedAt` |
-| Primary key | `INTEGER PRIMARY KEY AUTOINCREMENT` | `Id` |
+| Primary key | `{TableName}Id INTEGER PRIMARY KEY AUTOINCREMENT` | `RepoId`, `ReleaseId` |
+| Foreign keys | Match referenced PK name | `RepoId`, `GroupId`, `CsharpProjectMetadataId` |
+| Booleans | `INTEGER DEFAULT 0`, **`IsX` prefix** | `IsDraft`, `IsPreRelease`, `IsLatest` |
 | Strings | `TEXT DEFAULT ''` | |
-| Booleans | `INTEGER DEFAULT 0` | |
-| Timestamps | `TEXT DEFAULT CURRENT_TIMESTAMP` | |
+| Timestamps | `TEXT DEFAULT CURRENT_TIMESTAMP` | `CreatedAt`, `UpdatedAt` |
+| Reserved words | Double-quoted in DDL/DML | `"Group"(GroupId)` |
+| Abbreviations | Treated as words | `SshKey` (not `SSHKey`), `CsharpProjectMetadata` (not `CSharpProjectMetadata`) |
 
-Every table includes `Id` and `CreatedAt`.
+Every table includes `{TableName}Id` (or a natural key like `Setting.Key`) and `CreatedAt` where applicable.
+
+Source of truth: <https://github.com/alimtvnetwork/coding-guidelines-v15/blob/main/spec/04-database-conventions/01-naming-conventions.md>
 
 ## Migrations
 
