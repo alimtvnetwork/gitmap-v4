@@ -120,29 +120,10 @@ const (
 	HelpListVersions     = "  list-versions (lv)  Show all release tags, highest first (--limit N, --json, --source)"
 	HelpListReleases     = "  list-releases (lr)  Show releases from .gitmap/release/ files or database (--limit N, --json, --source)"
 	HelpRevert           = "  revert <version>    Revert to a specific release version"
-	HelpScanFlags        = "Scan flags:"
-	HelpConfig           = "  --config <path>     Config file (default: ./data/config.json)"
-	HelpMode             = "  --mode ssh|https    Clone URL style (default: https)"
-	HelpOutput           = "  --output csv|json|terminal  Output format (default: terminal)"
-	HelpOutputPath       = "  --output-path <dir> Output directory (default: .gitmap/output)"
-	HelpOutFile          = "  --out-file <path>   Exact output file path"
-	HelpGitHubDesktop    = "  --github-desktop    Add repos to GitHub Desktop"
-	HelpOpen             = "  --open              Open output folder after scan"
-	HelpQuiet            = "  --quiet             Suppress clone help section (for CI/scripted use)"
-	HelpCloneFlags       = "Clone flags:"
-	HelpTargetDir        = "  --target-dir <dir>  Base directory for clones (default: .)"
-	HelpSafePull         = "  --safe-pull         Pull existing repos with retry + unlock diagnostics (auto-enabled)"
-	HelpVerbose          = "  --verbose           Write detailed debug log to a timestamped file"
-	HelpReleaseFlags     = "Release flags:"
-	HelpAssets           = "  --assets <path>     Directory or file to attach to the release"
-	HelpCommit           = "  --commit <sha>      Create release from a specific commit"
-	HelpRelBranch        = "  --branch <name>     Create release from latest commit of a branch"
-	HelpBump             = "  --bump major|minor|patch  Auto-increment from latest released version"
-	HelpDraft            = "  --draft             Create an unpublished draft release"
-	HelpDryRun           = "  --dry-run           Preview release steps without executing"
-	HelpCompressFlag     = "  --compress          Wrap assets in .zip (Windows) or .tar.gz archives"
-	HelpChecksumsFlag    = "  --checksums         Generate SHA256 checksums.txt for assets"
 )
+
+// Help section headers and flag-line strings (HelpScanFlags, HelpCloneFlags,
+// HelpReleaseFlags, ...) live in constants_helpsections.go.
 
 // Flag descriptions.
 const (
