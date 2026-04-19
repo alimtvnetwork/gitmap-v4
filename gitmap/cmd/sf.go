@@ -175,11 +175,11 @@ func printSfRow(db *store.DB, f model.ScanFolder) {
 	fmt.Printf(constants.MsgSFListRowFmt, f.ID, f.AbsolutePath, label, count, f.LastScannedAt)
 }
 
-// openSfDB opens the DB with the standard scan setup helpers and migrates.
+// openSfDB opens the default profile DB and runs migrations. Mirrors
+// the upsertToDB / scan helpers so `gitmap sf` shares the exact same
+// resolution rules used by `gitmap scan`.
 func openSfDB() *store.DB {
-	cfg := loadConfigOrDefault()
-	outputDir := resolveOutputDir(cfg.OutputDir, mustWorkingDir())
-	db, err := store.Open(outputDir)
+	db, err := store.OpenDefault()
 	if err != nil {
 		fmt.Fprintln(os.Stderr, err.Error())
 		os.Exit(1)
@@ -193,12 +193,3 @@ func openSfDB() *store.DB {
 	return db
 }
 
-// mustWorkingDir returns the current working directory or "." on failure.
-func mustWorkingDir() string {
-	wd, err := os.Getwd()
-	if err != nil {
-		return constants.DefaultDir
-	}
-
-	return wd
-}
