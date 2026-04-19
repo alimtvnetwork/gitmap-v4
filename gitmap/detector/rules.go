@@ -31,42 +31,42 @@ func detectCpp(name, dir, repoPath string, repoID int64, repoName string, result
 		constants.ProjectKeyCpp, filepath.Base(dir), indicator, results)
 }
 
-// detectCSharpFile handles .sln and standalone .csproj detection.
-func detectCSharpFile(name, dir, repoPath string, repoID int64, repoName string, slnDirs map[string]bool, results *[]DetectionResult) {
+// detectCsharpFile handles .sln and standalone .csproj detection.
+func detectCsharpFile(name, dir, repoPath string, repoID int64, repoName string, slnDirs map[string]bool, results *[]DetectionResult) {
 	if strings.HasSuffix(name, constants.ExtSln) {
-		detectCSharpSln(name, dir, repoPath, repoID, repoName, results)
+		detectCsharpSln(name, dir, repoPath, repoID, repoName, results)
 
 		return
 	}
 	if strings.HasSuffix(name, constants.ExtCsproj) {
-		detectCSharpStandalone(name, dir, repoPath, repoID, repoName, slnDirs, results)
+		detectCsharpStandalone(name, dir, repoPath, repoID, repoName, slnDirs, results)
 	}
 }
 
-// detectCSharpSln creates a project entry for a .sln file.
-func detectCSharpSln(name, dir, repoPath string, repoID int64, repoName string, results *[]DetectionResult) {
-	if isDuplicate(dir, constants.ProjectKeyCSharp, results) {
+// detectCsharpSln creates a project entry for a .sln file.
+func detectCsharpSln(name, dir, repoPath string, repoID int64, repoName string, results *[]DetectionResult) {
+	if isDuplicate(dir, constants.ProjectKeyCsharp, results) {
 		return
 	}
 	projName := strings.TrimSuffix(name, constants.ExtSln)
 	result := buildBaseResult(dir, repoPath, repoID, repoName,
-		constants.ProjectTypeCSharpID, constants.ProjectKeyCSharp, projName, name)
-	meta := parseCSharpProject(dir, repoPath)
-	result.CSharp = meta
+		constants.ProjectTypeCsharpID, constants.ProjectKeyCsharp, projName, name)
+	meta := parseCsharpProject(dir, repoPath)
+	result.Csharp = meta
 	*results = append(*results, result)
 }
 
-// detectCSharpStandalone creates an entry for .csproj without parent .sln.
-func detectCSharpStandalone(name, dir, repoPath string, repoID int64, repoName string, slnDirs map[string]bool, results *[]DetectionResult) {
+// detectCsharpStandalone creates an entry for .csproj without parent .sln.
+func detectCsharpStandalone(name, dir, repoPath string, repoID int64, repoName string, slnDirs map[string]bool, results *[]DetectionResult) {
 	if isUnderSlnDir(dir, slnDirs) {
 		return
 	}
-	if isDuplicate(dir, constants.ProjectKeyCSharp, results) {
+	if isDuplicate(dir, constants.ProjectKeyCsharp, results) {
 		return
 	}
 	projName := strings.TrimSuffix(name, constants.ExtCsproj)
-	addResult(dir, repoPath, repoID, repoName, constants.ProjectTypeCSharpID,
-		constants.ProjectKeyCSharp, projName, name, results)
+	addResult(dir, repoPath, repoID, repoName, constants.ProjectTypeCsharpID,
+		constants.ProjectKeyCsharp, projName, name, results)
 }
 
 // isUnderSlnDir checks if dir is at or under any .sln directory.

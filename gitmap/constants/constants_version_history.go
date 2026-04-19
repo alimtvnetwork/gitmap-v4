@@ -1,18 +1,19 @@
 package constants
 
-// Table name for version history.
+// Table name for version history (v15: singular preserved; PK renamed).
 const TableRepoVersionHistory = "RepoVersionHistory"
 
-// SQL: create RepoVersionHistory table. FK now references v15 Repo(RepoId).
+// SQL: create RepoVersionHistory table (v15: RepoVersionHistoryId PK).
+// FK references v15 Repo(RepoId).
 const SQLCreateRepoVersionHistory = `CREATE TABLE IF NOT EXISTS RepoVersionHistory (
-	Id              INTEGER PRIMARY KEY AUTOINCREMENT,
-	RepoId          INTEGER NOT NULL REFERENCES Repo(RepoId) ON DELETE CASCADE,
-	FromVersionTag  TEXT NOT NULL,
-	FromVersionNum  INTEGER NOT NULL,
-	ToVersionTag    TEXT NOT NULL,
-	ToVersionNum    INTEGER NOT NULL,
-	FlattenedPath   TEXT DEFAULT '',
-	CreatedAt       TEXT DEFAULT CURRENT_TIMESTAMP
+	RepoVersionHistoryId INTEGER PRIMARY KEY AUTOINCREMENT,
+	RepoId               INTEGER NOT NULL REFERENCES Repo(RepoId) ON DELETE CASCADE,
+	FromVersionTag       TEXT NOT NULL,
+	FromVersionNum       INTEGER NOT NULL,
+	ToVersionTag         TEXT NOT NULL,
+	ToVersionNum         INTEGER NOT NULL,
+	FlattenedPath        TEXT DEFAULT '',
+	CreatedAt            TEXT DEFAULT CURRENT_TIMESTAMP
 )`
 
 // SQL: add version columns to Repo (v15 table name).
@@ -21,13 +22,13 @@ const (
 	SQLAddCurrentVersionNum = "ALTER TABLE Repo ADD COLUMN CurrentVersionNum INTEGER DEFAULT 0"
 )
 
-// SQL: version history operations.
+// SQL: version history operations (v15: RepoVersionHistoryId PK).
 const (
 	SQLInsertVersionHistory = `INSERT INTO RepoVersionHistory
 		(RepoId, FromVersionTag, FromVersionNum, ToVersionTag, ToVersionNum, FlattenedPath)
 		VALUES (?, ?, ?, ?, ?, ?)`
 
-	SQLSelectVersionHistory = `SELECT Id, RepoId, FromVersionTag, FromVersionNum,
+	SQLSelectVersionHistory = `SELECT RepoVersionHistoryId, RepoId, FromVersionTag, FromVersionNum,
 		ToVersionTag, ToVersionNum, FlattenedPath, CreatedAt
 		FROM RepoVersionHistory WHERE RepoId = ? ORDER BY CreatedAt DESC`
 

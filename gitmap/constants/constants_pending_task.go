@@ -1,6 +1,6 @@
 package constants
 
-// Pending task table names.
+// Pending task table names (v15: singular; PK renamed to {Table}Id).
 const (
 	TableTaskType      = "TaskType"
 	TablePendingTask   = "PendingTask"
@@ -17,16 +17,16 @@ const (
 	TaskTypeExec   = "Exec"
 )
 
-// SQL: create TaskType table.
+// SQL: create TaskType table (v15: TaskTypeId PK).
 const SQLCreateTaskType = `CREATE TABLE IF NOT EXISTS TaskType (
-	Id   INTEGER PRIMARY KEY AUTOINCREMENT,
-	Name TEXT NOT NULL UNIQUE
+	TaskTypeId INTEGER PRIMARY KEY AUTOINCREMENT,
+	Name       TEXT NOT NULL UNIQUE
 )`
 
-// SQL: create PendingTask table.
+// SQL: create PendingTask table (v15: PendingTaskId PK).
 const SQLCreatePendingTask = `CREATE TABLE IF NOT EXISTS PendingTask (
-	Id               INTEGER PRIMARY KEY AUTOINCREMENT,
-	TaskTypeId       INTEGER NOT NULL REFERENCES TaskType(Id),
+	PendingTaskId    INTEGER PRIMARY KEY AUTOINCREMENT,
+	TaskTypeId       INTEGER NOT NULL REFERENCES TaskType(TaskTypeId),
 	TargetPath       TEXT    NOT NULL,
 	WorkingDirectory TEXT    DEFAULT '',
 	SourceCommand    TEXT    NOT NULL,
@@ -36,11 +36,11 @@ const SQLCreatePendingTask = `CREATE TABLE IF NOT EXISTS PendingTask (
 	UpdatedAt        TEXT    DEFAULT CURRENT_TIMESTAMP
 )`
 
-// SQL: create CompletedTask table.
+// SQL: create CompletedTask table (v15: CompletedTaskId PK).
 const SQLCreateCompletedTask = `CREATE TABLE IF NOT EXISTS CompletedTask (
-	Id               INTEGER PRIMARY KEY AUTOINCREMENT,
+	CompletedTaskId  INTEGER PRIMARY KEY AUTOINCREMENT,
 	OriginalTaskId   INTEGER NOT NULL,
-	TaskTypeId       INTEGER NOT NULL REFERENCES TaskType(Id),
+	TaskTypeId       INTEGER NOT NULL REFERENCES TaskType(TaskTypeId),
 	TargetPath       TEXT    NOT NULL,
 	WorkingDirectory TEXT    DEFAULT '',
 	SourceCommand    TEXT    NOT NULL,
@@ -60,7 +60,8 @@ const (
 	SQLDropTaskType      = "DROP TABLE IF EXISTS TaskType"
 )
 
-// SQL: migrate existing tables to add new columns.
+// SQL: legacy ALTERs to add WorkingDirectory/CommandArgs columns. Idempotent.
+// Run BEFORE the v15 rebuild copies these columns by name.
 const (
 	SQLMigratePendingWorkDir   = "ALTER TABLE PendingTask ADD COLUMN WorkingDirectory TEXT DEFAULT ''"
 	SQLMigratePendingCmdArgs   = "ALTER TABLE PendingTask ADD COLUMN CommandArgs TEXT DEFAULT ''"

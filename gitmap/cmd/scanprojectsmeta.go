@@ -48,38 +48,38 @@ func upsertGoRunnables(db *store.DB, meta *model.GoProjectMetadata) []int64 {
 	return ids
 }
 
-// upsertCSharpProjectMeta persists C# metadata, project files, and key files.
-func upsertCSharpProjectMeta(db *store.DB, r detector.DetectionResult) {
-	r.CSharp.DetectedProjectID = r.Project.ID
-	if err := db.UpsertCSharpMetadata(*r.CSharp); err != nil {
-		fmt.Fprintf(os.Stderr, constants.ErrCSharpMetaUpsert, err)
+// upsertCsharpProjectMeta persists C# metadata, project files, and key files.
+func upsertCsharpProjectMeta(db *store.DB, r detector.DetectionResult) {
+	r.Csharp.DetectedProjectID = r.Project.ID
+	if err := db.UpsertCsharpMetadata(*r.Csharp); err != nil {
+		fmt.Fprintf(os.Stderr, constants.ErrCsharpMetaUpsert, err)
 
 		return
 	}
-	saved, err := db.SelectCSharpMetadata(r.Project.ID)
+	saved, err := db.SelectCsharpMetadata(r.Project.ID)
 	if err != nil {
-		fmt.Fprintf(os.Stderr, constants.ErrCSharpMetaUpsert, err)
+		fmt.Fprintf(os.Stderr, constants.ErrCsharpMetaUpsert, err)
 
 		return
 	}
-	r.CSharp.ID = saved.ID
-	fileIDs := upsertCSharpFiles(db, r.CSharp)
-	keyIDs := upsertCSharpKeyFiles(db, r.CSharp)
-	if err := db.DeleteStaleCSharpFiles(r.CSharp.ID, fileIDs); err != nil {
+	r.Csharp.ID = saved.ID
+	fileIDs := upsertCsharpFiles(db, r.Csharp)
+	keyIDs := upsertCsharpKeyFiles(db, r.Csharp)
+	if err := db.DeleteStaleCsharpFiles(r.Csharp.ID, fileIDs); err != nil {
 		fmt.Fprintf(os.Stderr, "  ⚠ Could not clean stale C# files: %v\n", err)
 	}
-	if err := db.DeleteStaleCSharpKeyFiles(r.CSharp.ID, keyIDs); err != nil {
+	if err := db.DeleteStaleCsharpKeyFiles(r.Csharp.ID, keyIDs); err != nil {
 		fmt.Fprintf(os.Stderr, "  ⚠ Could not clean stale C# key files: %v\n", err)
 	}
 }
 
-// upsertCSharpFiles persists C# project files and returns their IDs.
-func upsertCSharpFiles(db *store.DB, meta *model.CSharpProjectMetadata) []int64 {
+// upsertCsharpFiles persists C# project files and returns their IDs.
+func upsertCsharpFiles(db *store.DB, meta *model.CsharpProjectMetadata) []int64 {
 	var ids []int64
 	for _, f := range meta.ProjectFiles {
-		f.CSharpMetadataID = meta.ID
-		if err := db.UpsertCSharpProjectFile(f); err != nil {
-			fmt.Fprintf(os.Stderr, constants.ErrCSharpFileUpsert, err)
+		f.CsharpMetadataID = meta.ID
+		if err := db.UpsertCsharpProjectFile(f); err != nil {
+			fmt.Fprintf(os.Stderr, constants.ErrCsharpFileUpsert, err)
 
 			continue
 		}
@@ -89,13 +89,13 @@ func upsertCSharpFiles(db *store.DB, meta *model.CSharpProjectMetadata) []int64 
 	return ids
 }
 
-// upsertCSharpKeyFiles persists C# key files and returns their IDs.
-func upsertCSharpKeyFiles(db *store.DB, meta *model.CSharpProjectMetadata) []int64 {
+// upsertCsharpKeyFiles persists C# key files and returns their IDs.
+func upsertCsharpKeyFiles(db *store.DB, meta *model.CsharpProjectMetadata) []int64 {
 	var ids []int64
 	for _, f := range meta.KeyFiles {
-		f.CSharpMetadataID = meta.ID
-		if err := db.UpsertCSharpKeyFile(f); err != nil {
-			fmt.Fprintf(os.Stderr, constants.ErrCSharpKeyUpsert, err)
+		f.CsharpMetadataID = meta.ID
+		if err := db.UpsertCsharpKeyFile(f); err != nil {
+			fmt.Fprintf(os.Stderr, constants.ErrCsharpKeyUpsert, err)
 
 			continue
 		}

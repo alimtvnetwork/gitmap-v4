@@ -147,7 +147,7 @@ func printGroupProject() {
 	fmt.Println(constants.HelpNodeRepos)
 	fmt.Println(constants.HelpReactRepos)
 	fmt.Println(constants.HelpCppRepos)
-	fmt.Println(constants.HelpCSharpRepos)
+	fmt.Println(constants.HelpCsharpRepos)
 }
 
 // printGroupSSH prints the SSH key management commands.

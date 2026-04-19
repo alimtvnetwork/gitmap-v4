@@ -64,9 +64,9 @@ func (db *DB) dropProjectTables() {
 	drops := []string{
 		constants.SQLDropGoRunnableFiles,
 		constants.SQLDropGoProjectMetadata,
-		constants.SQLDropCSharpKeyFiles,
-		constants.SQLDropCSharpProjectFiles,
-		constants.SQLDropCSharpProjectMeta,
+		constants.SQLDropCsharpKeyFiles,
+		constants.SQLDropCsharpProjectFiles,
+		constants.SQLDropCsharpProjectMeta,
 		constants.SQLDropDetectedProjects,
 		constants.SQLDropProjectTypes,
 	}

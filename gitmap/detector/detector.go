@@ -25,7 +25,7 @@ func DetectProjects(repoPath string, repoID int64, repoName string) []DetectionR
 type DetectionResult struct {
 	Project model.DetectedProject
 	GoMeta  *model.GoProjectMetadata
-	CSharp  *model.CSharpProjectMetadata
+	Csharp  *model.CsharpProjectMetadata
 }
 
 // walkRepo walks the directory tree and detects projects.
@@ -58,7 +58,7 @@ func detectFile(path, repoPath string, repoID int64, repoName string, slnDirs ma
 		detectNodeOrReact(dir, path, repoPath, repoID, repoName, results)
 	}
 	detectCpp(name, dir, repoPath, repoID, repoName, results)
-	detectCSharpFile(name, dir, repoPath, repoID, repoName, slnDirs, results)
+	detectCsharpFile(name, dir, repoPath, repoID, repoName, slnDirs, results)
 }
 
 // collectSlnDirs pre-scans for .sln files to enforce precedence.

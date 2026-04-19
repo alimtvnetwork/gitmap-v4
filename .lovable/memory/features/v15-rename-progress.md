@@ -13,7 +13,7 @@ PascalCase + **singular** table names + `{TableName}Id` primary keys + FKs match
 | 1.1 | `Repos` → `Repo` (RepoId PK), `GroupRepos` → `GroupRepo`, index → `IdxRepo_AbsolutePath` | DONE (v3.1.0) |
 | 1.2 | `Groups` → `Group` (GroupId), `Releases` → `Release` (ReleaseId), `Aliases` → `Alias` (AliasId), `Bookmarks` → `Bookmark` (BookmarkId) | DONE (v3.3.0) |
 | 1.3 | `Amendments` → `Amendment`, `CommitTemplates` → `CommitTemplate`, `Settings` → `Setting`, `SSHKeys` → `SshKey`, `InstalledTools` → `InstalledTool`, `TempReleases` → `TempRelease` | DONE (v3.3.0) |
-| 1.4 | ZipGroup family + Project family (incl. `CSharp` → `Csharp` strict v15) + Task family + History tables | TODO |
+| 1.4 | ZipGroup family + Project family (incl. `CSharp` → `Csharp` strict v15) + Task family + History tables | **PARTIAL** (constants done, store-side + migrator NOT done) |
 | 1.5 | Boolean prefix fixes (`Release.Draft` → `IsDraft`, `Release.PreRelease` → `IsPreRelease`) | TODO |
 | 1.6 | Update spec/12, regenerate both ERDs, bump CHANGELOG entry, update mem://index core | TODO |
 
@@ -68,7 +68,28 @@ PascalCase + **singular** table names + `{TableName}Id` primary keys + FKs match
 - Phase 1.6: regenerate both ERDs, update spec/12-consolidated-guidelines/11-database.md, CHANGELOG entry, mem://index core update, version bump to v3.4.0 (or higher).
 
 ## What's still NOT done in Phase 1
-- Phase 1.4, 1.5, 1.6 (see above).
+
+### Phase 1.4 — IN PROGRESS, partial completion as of this turn
+**Done this turn:**
+- Bulk `sed s/CSharp/Csharp/g` across all 22 Go files that referenced `CSharp` (model, detector, cmd, store, constants). All Go identifiers (`CSharpProjectMetadata` → `CsharpProjectMetadata`, `r.CSharp` → `r.Csharp`, `ProjectKeyCSharp` → `ProjectKeyCsharp`, `CmdCSharpRepos` → `CmdCsharpRepos`, etc.) and SQL string literals inside Go backticks were renamed in one pass. JSON tags (`csharpMetadataId` lowercase) were unaffected.
+- Rewrote 5 constants files with v15 singular tables + `{Table}Id` PKs:
+  - `constants_project.go` — `TableProjectType`, `TableDetectedProject`, `TableGoRunnableFile`, `TableCsharp*` + `LegacyTable*` for migration detection (incl. pre-Csharp `"CSharp*"` legacy spellings).
+  - `constants_project_sql.go` — `SQLCreateProjectType`/`DetectedProject`/`GoProjectMetadata`/`GoRunnableFile`/`CsharpProjectMetadata`/`CsharpProjectFile`/`CsharpKeyFile` all with `{Table}Id` PKs. Added `SQLDropCsharpProjectMetaLegacy` for cleanup of pre-Csharp tables.
+  - `constants_zipgroup.go` — `TableZipGroup`/`TableZipGroupItem`, `SQLCreateZipGroup`/`SQLCreateZipGroupItem` with `ZipGroupId` PK; legacy plural drops kept.
+  - `constants_history.go` — `CommandHistoryId` PK throughout.
+  - `constants_version_history.go` — `RepoVersionHistoryId` PK.
+  - `constants_pending_task.go` + `constants_pending_task_sql.go` — `TaskTypeId`/`PendingTaskId`/`CompletedTaskId` PKs throughout.
+
+**NOT done this turn (next turn must finish before bumping version):**
+1. **Store-side scan order updates** — every store/*.go file that does `rows.Scan(&r.ID, ...)` for these 14 tables needs to keep working with the new column order. Most are already correct because `{Table}Id` is still the first column, but verify: `store/zipgroup.go`, `store/project.go`, `store/csharpmetadata.go`, `store/gometadata.go`, `store/history.go`, `store/version_history.go`, `store/pendingtask.go`, `store/pendingtaskscan.go`. No code edits expected, just verification.
+2. **Constant-name callsite fixes** — the constants file rewrites RENAMED some Go-side identifiers (`SQLCreateZipGroups` → `SQLCreateZipGroup`, `SQLCreateProjectTypes` → `SQLCreateProjectType`, `SQLCreateDetectedProjects` → `SQLCreateDetectedProject`, `SQLCreateGoRunnableFiles` → `SQLCreateGoRunnableFile`, `SQLCreateCsharpProjectFiles` → `SQLCreateCsharpProjectFile`, `SQLCreateCsharpKeyFiles` → `SQLCreateCsharpKeyFile`, `SQLCreateZipGroupItems` → `SQLCreateZipGroupItem`, `SQLDeleteStaleCsharpFiles`/`SQLDeleteStaleCsharpKeyFiles` already match, and `ErrCSharp*` → `ErrCsharp*` from sed). Callsites in `gitmap/store/store.go::Migrate()` and `Reset()` and `gitmap/store/migrateids.go::dropProjectTables()` reference the OLD names and will fail to compile. Must update.
+3. **Migrator** — create `gitmap/store/migrate_v15phase4.go` with 14 `runV15Rebuild` specs (incl. CSharp-to-Csharp legacy detection: `OldTable: "CSharpProjectMetadata"` → `NewTable: "CsharpProjectMetadata"`). Wire into `store.go::Migrate()` between Phase 1.3 and the standard CREATE pass.
+4. **Version bump** — `constants.go::Version` from `3.3.0` to `3.4.0` AFTER above completes and a clean compile is plausible.
+5. **`migrateZipGroupItemPaths()`** in store.go — its constants `SQLMigrateZGI*` still target legacy plural `ZipGroupItems` (correct, these are pre-rename ALTERs that must run BEFORE the v15 rebuild copies the table — same pattern as `preV15Phase2EnsureReleaseColumns`).
+
+### Phase 1.5, 1.6 (unchanged, still TODO)
+- Phase 1.5: `Release.Draft` → `IsDraft`, `Release.PreRelease` → `IsPreRelease` (column rename).
+- Phase 1.6: regenerate ERDs, update spec/12, CHANGELOG, mem://index core, version bump.
 
 ## Deferred to later phases
 - ScanFolder table (Phase 2).

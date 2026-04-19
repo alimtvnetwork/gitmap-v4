@@ -14,31 +14,38 @@ const (
 	SubCmdZGRename   = "rename"
 )
 
-// Zip group table names.
+// Zip group table names (v15: PascalCase singular + {Table}Id PK).
 const (
-	TableZipGroups     = "ZipGroups"
-	TableZipGroupItems = "ZipGroupItems"
+	TableZipGroup     = "ZipGroup"
+	TableZipGroupItem = "ZipGroupItem"
 )
 
-// SQL: create ZipGroups table.
-const SQLCreateZipGroups = `CREATE TABLE IF NOT EXISTS ZipGroups (
-	Id          INTEGER PRIMARY KEY AUTOINCREMENT,
+// Legacy plural names retained for migration detection.
+const (
+	LegacyTableZipGroups     = "ZipGroups"
+	LegacyTableZipGroupItems = "ZipGroupItems"
+)
+
+// SQL: create ZipGroup table (v15: singular + ZipGroupId PK).
+const SQLCreateZipGroup = `CREATE TABLE IF NOT EXISTS ZipGroup (
+	ZipGroupId  INTEGER PRIMARY KEY AUTOINCREMENT,
 	Name        TEXT NOT NULL UNIQUE,
 	ArchiveName TEXT DEFAULT '',
 	CreatedAt   TEXT DEFAULT CURRENT_TIMESTAMP
 )`
 
-// SQL: create ZipGroupItems table (v2 with path fields).
-const SQLCreateZipGroupItems = `CREATE TABLE IF NOT EXISTS ZipGroupItems (
-	GroupId      INTEGER NOT NULL REFERENCES ZipGroups(Id) ON DELETE CASCADE,
+// SQL: create ZipGroupItem table (v15 singular). Composite PK retained.
+const SQLCreateZipGroupItem = `CREATE TABLE IF NOT EXISTS ZipGroupItem (
+	ZipGroupId   INTEGER NOT NULL REFERENCES ZipGroup(ZipGroupId) ON DELETE CASCADE,
 	RepoPath     TEXT NOT NULL DEFAULT '',
 	RelativePath TEXT NOT NULL DEFAULT '',
 	FullPath     TEXT NOT NULL DEFAULT '',
 	IsFolder     INTEGER DEFAULT 0,
-	PRIMARY KEY (GroupId, FullPath)
+	PRIMARY KEY (ZipGroupId, FullPath)
 )`
 
-// SQL: migrate ZipGroupItems from v1 (Path column) to v2 (path fields).
+// SQL: legacy ALTERs for pre-v15 ZipGroupItems (still target legacy plural —
+// run BEFORE v15 rebuild copies the table). Idempotent.
 const (
 	SQLMigrateZGIRepoPath     = `ALTER TABLE ZipGroupItems ADD COLUMN RepoPath TEXT NOT NULL DEFAULT ''`
 	SQLMigrateZGIRelativePath = `ALTER TABLE ZipGroupItems ADD COLUMN RelativePath TEXT NOT NULL DEFAULT ''`
@@ -47,38 +54,40 @@ const (
 	SQLMigrateZGIDropPath     = `ALTER TABLE ZipGroupItems DROP COLUMN Path`
 )
 
-// SQL: zip group operations.
+// SQL: zip group operations (v15 singular tables + ZipGroupId PK).
 const (
-	SQLInsertZipGroup = `INSERT INTO ZipGroups (Name, ArchiveName) VALUES (?, ?)`
+	SQLInsertZipGroup = `INSERT INTO ZipGroup (Name, ArchiveName) VALUES (?, ?)`
 
-	SQLSelectAllZipGroups = `SELECT Id, Name, ArchiveName, CreatedAt FROM ZipGroups ORDER BY Name`
+	SQLSelectAllZipGroups = `SELECT ZipGroupId, Name, ArchiveName, CreatedAt FROM ZipGroup ORDER BY Name`
 
-	SQLSelectZipGroupByName = `SELECT Id, Name, ArchiveName, CreatedAt FROM ZipGroups WHERE Name = ?`
+	SQLSelectZipGroupByName = `SELECT ZipGroupId, Name, ArchiveName, CreatedAt FROM ZipGroup WHERE Name = ?`
 
-	SQLDeleteZipGroup = `DELETE FROM ZipGroups WHERE Name = ?`
+	SQLDeleteZipGroup = `DELETE FROM ZipGroup WHERE Name = ?`
 
-	SQLUpdateZipGroupArchive = `UPDATE ZipGroups SET ArchiveName = ? WHERE Name = ?`
+	SQLUpdateZipGroupArchive = `UPDATE ZipGroup SET ArchiveName = ? WHERE Name = ?`
 )
 
 // SQL: zip group item operations.
 const (
-	SQLInsertZipGroupItem = `INSERT OR IGNORE INTO ZipGroupItems (GroupId, RepoPath, RelativePath, FullPath, IsFolder) VALUES (?, ?, ?, ?, ?)`
+	SQLInsertZipGroupItem = `INSERT OR IGNORE INTO ZipGroupItem (ZipGroupId, RepoPath, RelativePath, FullPath, IsFolder) VALUES (?, ?, ?, ?, ?)`
 
-	SQLDeleteZipGroupItem = `DELETE FROM ZipGroupItems WHERE GroupId = ? AND FullPath = ?`
+	SQLDeleteZipGroupItem = `DELETE FROM ZipGroupItem WHERE ZipGroupId = ? AND FullPath = ?`
 
-	SQLSelectZipGroupItems = `SELECT GroupId, RepoPath, RelativePath, FullPath, IsFolder FROM ZipGroupItems WHERE GroupId = ? ORDER BY FullPath`
+	SQLSelectZipGroupItems = `SELECT ZipGroupId, RepoPath, RelativePath, FullPath, IsFolder FROM ZipGroupItem WHERE ZipGroupId = ? ORDER BY FullPath`
 
-	SQLCountZipGroupItems = `SELECT COUNT(*) FROM ZipGroupItems WHERE GroupId = ?`
+	SQLCountZipGroupItems = `SELECT COUNT(*) FROM ZipGroupItem WHERE ZipGroupId = ?`
 
-	SQLSelectAllZipGroupsWithCount = `SELECT g.Id, g.Name, g.ArchiveName, g.CreatedAt,
-		(SELECT COUNT(*) FROM ZipGroupItems i WHERE i.GroupId = g.Id) AS ItemCount
-		FROM ZipGroups g ORDER BY g.Name`
+	SQLSelectAllZipGroupsWithCount = `SELECT g.ZipGroupId, g.Name, g.ArchiveName, g.CreatedAt,
+		(SELECT COUNT(*) FROM ZipGroupItem i WHERE i.ZipGroupId = g.ZipGroupId) AS ItemCount
+		FROM ZipGroup g ORDER BY g.Name`
 )
 
-// SQL: drop zip group tables.
+// SQL: drop zip group tables (v15 + legacy plurals retained for Reset).
 const (
-	SQLDropZipGroups     = "DROP TABLE IF EXISTS ZipGroups"
-	SQLDropZipGroupItems = "DROP TABLE IF EXISTS ZipGroupItems"
+	SQLDropZipGroup      = "DROP TABLE IF EXISTS ZipGroup"
+	SQLDropZipGroups     = "DROP TABLE IF EXISTS ZipGroups"     // legacy
+	SQLDropZipGroupItem  = "DROP TABLE IF EXISTS ZipGroupItem"
+	SQLDropZipGroupItems = "DROP TABLE IF EXISTS ZipGroupItems" // legacy
 )
 
 // Zip group flag descriptions.

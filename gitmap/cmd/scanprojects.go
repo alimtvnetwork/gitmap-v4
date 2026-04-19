@@ -92,7 +92,7 @@ func upsertProjectMetadata(db *store.DB, r detector.DetectionResult) {
 	if r.GoMeta != nil {
 		upsertGoProjectMeta(db, r)
 	}
-	if r.CSharp != nil {
-		upsertCSharpProjectMeta(db, r)
+	if r.Csharp != nil {
+		upsertCsharpProjectMeta(db, r)
 	}
 }

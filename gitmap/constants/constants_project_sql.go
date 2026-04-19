@@ -1,88 +1,90 @@
 package constants
 
-// SQL: create ProjectTypes table.
-const SQLCreateProjectTypes = `CREATE TABLE IF NOT EXISTS ProjectTypes (
-	Id          INTEGER PRIMARY KEY AUTOINCREMENT,
-	Key         TEXT NOT NULL UNIQUE,
-	Name        TEXT NOT NULL,
-	Description TEXT DEFAULT ''
+// SQL: create ProjectType table (v15: singular + ProjectTypeId PK).
+const SQLCreateProjectType = `CREATE TABLE IF NOT EXISTS ProjectType (
+	ProjectTypeId INTEGER PRIMARY KEY AUTOINCREMENT,
+	Key           TEXT NOT NULL UNIQUE,
+	Name          TEXT NOT NULL,
+	Description   TEXT DEFAULT ''
 )`
 
-// SQL: create DetectedProjects table. FK now references v15 Repo(RepoId).
-const SQLCreateDetectedProjects = `CREATE TABLE IF NOT EXISTS DetectedProjects (
-	Id               INTEGER PRIMARY KEY AUTOINCREMENT,
-	RepoId           INTEGER NOT NULL REFERENCES Repo(RepoId) ON DELETE CASCADE,
-	ProjectTypeId    INTEGER NOT NULL REFERENCES ProjectTypes(Id),
-	ProjectName      TEXT NOT NULL,
-	AbsolutePath     TEXT NOT NULL,
-	RepoPath         TEXT NOT NULL,
-	RelativePath     TEXT NOT NULL,
-	PrimaryIndicator TEXT NOT NULL,
-	DetectedAt       TEXT DEFAULT CURRENT_TIMESTAMP,
+// SQL: create DetectedProject table (v15: singular + DetectedProjectId PK).
+// FK references v15 Repo(RepoId) and ProjectType(ProjectTypeId).
+const SQLCreateDetectedProject = `CREATE TABLE IF NOT EXISTS DetectedProject (
+	DetectedProjectId INTEGER PRIMARY KEY AUTOINCREMENT,
+	RepoId            INTEGER NOT NULL REFERENCES Repo(RepoId) ON DELETE CASCADE,
+	ProjectTypeId     INTEGER NOT NULL REFERENCES ProjectType(ProjectTypeId),
+	ProjectName       TEXT NOT NULL,
+	AbsolutePath      TEXT NOT NULL,
+	RepoPath          TEXT NOT NULL,
+	RelativePath      TEXT NOT NULL,
+	PrimaryIndicator  TEXT NOT NULL,
+	DetectedAt        TEXT DEFAULT CURRENT_TIMESTAMP,
 	UNIQUE(RepoId, ProjectTypeId, RelativePath)
 )`
 
-// SQL: create GoProjectMetadata table.
+// SQL: create GoProjectMetadata table (v15: GoProjectMetadataId PK).
 const SQLCreateGoProjectMetadata = `CREATE TABLE IF NOT EXISTS GoProjectMetadata (
-	Id                INTEGER PRIMARY KEY AUTOINCREMENT,
-	DetectedProjectId INTEGER NOT NULL UNIQUE
-		REFERENCES DetectedProjects(Id) ON DELETE CASCADE,
-	GoModPath         TEXT NOT NULL,
-	GoSumPath         TEXT DEFAULT '',
-	ModuleName        TEXT NOT NULL,
-	GoVersion         TEXT DEFAULT ''
+	GoProjectMetadataId INTEGER PRIMARY KEY AUTOINCREMENT,
+	DetectedProjectId   INTEGER NOT NULL UNIQUE
+		REFERENCES DetectedProject(DetectedProjectId) ON DELETE CASCADE,
+	GoModPath           TEXT NOT NULL,
+	GoSumPath           TEXT DEFAULT '',
+	ModuleName          TEXT NOT NULL,
+	GoVersion           TEXT DEFAULT ''
 )`
 
-// SQL: create GoRunnableFiles table.
-const SQLCreateGoRunnableFiles = `CREATE TABLE IF NOT EXISTS GoRunnableFiles (
-	Id           INTEGER PRIMARY KEY AUTOINCREMENT,
-	GoMetadataId INTEGER NOT NULL
-		REFERENCES GoProjectMetadata(Id) ON DELETE CASCADE,
-	RunnableName TEXT NOT NULL,
-	FilePath     TEXT NOT NULL,
-	RelativePath TEXT NOT NULL,
+// SQL: create GoRunnableFile table (v15: singular + GoRunnableFileId PK).
+const SQLCreateGoRunnableFile = `CREATE TABLE IF NOT EXISTS GoRunnableFile (
+	GoRunnableFileId INTEGER PRIMARY KEY AUTOINCREMENT,
+	GoMetadataId     INTEGER NOT NULL
+		REFERENCES GoProjectMetadata(GoProjectMetadataId) ON DELETE CASCADE,
+	RunnableName     TEXT NOT NULL,
+	FilePath         TEXT NOT NULL,
+	RelativePath     TEXT NOT NULL,
 	UNIQUE(GoMetadataId, RelativePath)
 )`
 
-// SQL: create CSharpProjectMetadata table.
-const SQLCreateCSharpProjectMeta = `CREATE TABLE IF NOT EXISTS CSharpProjectMetadata (
-	Id                INTEGER PRIMARY KEY AUTOINCREMENT,
-	DetectedProjectId INTEGER NOT NULL UNIQUE
-		REFERENCES DetectedProjects(Id) ON DELETE CASCADE,
-	SlnPath           TEXT DEFAULT '',
-	SlnName           TEXT DEFAULT '',
-	GlobalJsonPath    TEXT DEFAULT '',
-	SdkVersion        TEXT DEFAULT ''
+// SQL: create CsharpProjectMetadata table (v15: CsharpProjectMetadataId PK
+// + Csharp abbreviation per strict v15 PascalCase rule).
+const SQLCreateCsharpProjectMeta = `CREATE TABLE IF NOT EXISTS CsharpProjectMetadata (
+	CsharpProjectMetadataId INTEGER PRIMARY KEY AUTOINCREMENT,
+	DetectedProjectId       INTEGER NOT NULL UNIQUE
+		REFERENCES DetectedProject(DetectedProjectId) ON DELETE CASCADE,
+	SlnPath                 TEXT DEFAULT '',
+	SlnName                 TEXT DEFAULT '',
+	GlobalJsonPath          TEXT DEFAULT '',
+	SdkVersion              TEXT DEFAULT ''
 )`
 
-// SQL: create CSharpProjectFiles table.
-const SQLCreateCSharpProjectFiles = `CREATE TABLE IF NOT EXISTS CSharpProjectFiles (
-	Id               INTEGER PRIMARY KEY AUTOINCREMENT,
-	CSharpMetadataId INTEGER NOT NULL
-		REFERENCES CSharpProjectMetadata(Id) ON DELETE CASCADE,
-	FilePath         TEXT NOT NULL,
-	RelativePath     TEXT NOT NULL,
-	FileName         TEXT NOT NULL,
-	ProjectName      TEXT NOT NULL,
-	TargetFramework  TEXT DEFAULT '',
-	OutputType       TEXT DEFAULT '',
-	Sdk              TEXT DEFAULT '',
-	UNIQUE(CSharpMetadataId, RelativePath)
+// SQL: create CsharpProjectFile table (v15: singular + CsharpProjectFileId PK).
+const SQLCreateCsharpProjectFile = `CREATE TABLE IF NOT EXISTS CsharpProjectFile (
+	CsharpProjectFileId INTEGER PRIMARY KEY AUTOINCREMENT,
+	CsharpMetadataId    INTEGER NOT NULL
+		REFERENCES CsharpProjectMetadata(CsharpProjectMetadataId) ON DELETE CASCADE,
+	FilePath            TEXT NOT NULL,
+	RelativePath        TEXT NOT NULL,
+	FileName            TEXT NOT NULL,
+	ProjectName         TEXT NOT NULL,
+	TargetFramework    TEXT DEFAULT '',
+	OutputType          TEXT DEFAULT '',
+	Sdk                 TEXT DEFAULT '',
+	UNIQUE(CsharpMetadataId, RelativePath)
 )`
 
-// SQL: create CSharpKeyFiles table.
-const SQLCreateCSharpKeyFiles = `CREATE TABLE IF NOT EXISTS CSharpKeyFiles (
-	Id               INTEGER PRIMARY KEY AUTOINCREMENT,
-	CSharpMetadataId INTEGER NOT NULL
-		REFERENCES CSharpProjectMetadata(Id) ON DELETE CASCADE,
+// SQL: create CsharpKeyFile table (v15: singular + CsharpKeyFileId PK).
+const SQLCreateCsharpKeyFile = `CREATE TABLE IF NOT EXISTS CsharpKeyFile (
+	CsharpKeyFileId  INTEGER PRIMARY KEY AUTOINCREMENT,
+	CsharpMetadataId INTEGER NOT NULL
+		REFERENCES CsharpProjectMetadata(CsharpProjectMetadataId) ON DELETE CASCADE,
 	FileType         TEXT NOT NULL,
 	FilePath         TEXT NOT NULL,
 	RelativePath     TEXT NOT NULL,
-	UNIQUE(CSharpMetadataId, RelativePath)
+	UNIQUE(CsharpMetadataId, RelativePath)
 )`
 
 // SQL: seed project types.
-const SQLSeedProjectTypes = `INSERT OR IGNORE INTO ProjectTypes (Key, Name, Description) VALUES
+const SQLSeedProjectTypes = `INSERT OR IGNORE INTO ProjectType (Key, Name, Description) VALUES
 	('go',     'Go',      'Go modules and packages'),
 	('node',   'Node.js', 'Node.js projects'),
 	('react',  'React',   'React applications'),
@@ -90,7 +92,7 @@ const SQLSeedProjectTypes = `INSERT OR IGNORE INTO ProjectTypes (Key, Name, Desc
 	('csharp', 'C#',      '.NET and C# projects')`
 
 // SQL: upsert detected project.
-const SQLUpsertDetectedProject = `INSERT INTO DetectedProjects
+const SQLUpsertDetectedProject = `INSERT INTO DetectedProject
 	(RepoId, ProjectTypeId, ProjectName, AbsolutePath, RepoPath, RelativePath, PrimaryIndicator)
 	VALUES (?, ?, ?, ?, ?, ?, ?)
 	ON CONFLICT(RepoId, ProjectTypeId, RelativePath) DO UPDATE SET
@@ -111,7 +113,7 @@ const SQLUpsertGoMetadata = `INSERT INTO GoProjectMetadata
 		GoVersion=excluded.GoVersion`
 
 // SQL: upsert Go runnable file.
-const SQLUpsertGoRunnable = `INSERT INTO GoRunnableFiles
+const SQLUpsertGoRunnable = `INSERT INTO GoRunnableFile
 	(GoMetadataId, RunnableName, FilePath, RelativePath)
 	VALUES (?, ?, ?, ?)
 	ON CONFLICT(GoMetadataId, RelativePath) DO UPDATE SET
@@ -119,7 +121,7 @@ const SQLUpsertGoRunnable = `INSERT INTO GoRunnableFiles
 		FilePath=excluded.FilePath`
 
 // SQL: upsert C# metadata.
-const SQLUpsertCSharpMetadata = `INSERT INTO CSharpProjectMetadata
+const SQLUpsertCsharpMetadata = `INSERT INTO CsharpProjectMetadata
 	(DetectedProjectId, SlnPath, SlnName, GlobalJsonPath, SdkVersion)
 	VALUES (?, ?, ?, ?, ?)
 	ON CONFLICT(DetectedProjectId) DO UPDATE SET
@@ -129,10 +131,10 @@ const SQLUpsertCSharpMetadata = `INSERT INTO CSharpProjectMetadata
 		SdkVersion=excluded.SdkVersion`
 
 // SQL: upsert C# project file.
-const SQLUpsertCSharpProjectFile = `INSERT INTO CSharpProjectFiles
-	(CSharpMetadataId, FilePath, RelativePath, FileName, ProjectName, TargetFramework, OutputType, Sdk)
+const SQLUpsertCsharpProjectFile = `INSERT INTO CsharpProjectFile
+	(CsharpMetadataId, FilePath, RelativePath, FileName, ProjectName, TargetFramework, OutputType, Sdk)
 	VALUES (?, ?, ?, ?, ?, ?, ?, ?)
-	ON CONFLICT(CSharpMetadataId, RelativePath) DO UPDATE SET
+	ON CONFLICT(CsharpMetadataId, RelativePath) DO UPDATE SET
 		FilePath=excluded.FilePath,
 		FileName=excluded.FileName,
 		ProjectName=excluded.ProjectName,
@@ -141,77 +143,83 @@ const SQLUpsertCSharpProjectFile = `INSERT INTO CSharpProjectFiles
 		Sdk=excluded.Sdk`
 
 // SQL: upsert C# key file.
-const SQLUpsertCSharpKeyFile = `INSERT INTO CSharpKeyFiles
-	(CSharpMetadataId, FileType, FilePath, RelativePath)
+const SQLUpsertCsharpKeyFile = `INSERT INTO CsharpKeyFile
+	(CsharpMetadataId, FileType, FilePath, RelativePath)
 	VALUES (?, ?, ?, ?)
-	ON CONFLICT(CSharpMetadataId, RelativePath) DO UPDATE SET
+	ON CONFLICT(CsharpMetadataId, RelativePath) DO UPDATE SET
 		FileType=excluded.FileType,
 		FilePath=excluded.FilePath`
 
 // SQL: query detected project ID by identity tuple.
-const SQLSelectDetectedProjectID = `SELECT Id
-	FROM DetectedProjects
+const SQLSelectDetectedProjectID = `SELECT DetectedProjectId
+	FROM DetectedProject
 	WHERE RepoId = ? AND ProjectTypeId = ? AND RelativePath = ?`
 
-// SQL: query projects by type key (v15: JOIN Repo on RepoId).
-const SQLSelectProjectsByTypeKey = `SELECT dp.Id, dp.RepoId, pt.Key, dp.ProjectName,
+// SQL: query projects by type key (v15: JOIN Repo on RepoId, ProjectType on ProjectTypeId).
+const SQLSelectProjectsByTypeKey = `SELECT dp.DetectedProjectId, dp.RepoId, pt.Key, dp.ProjectName,
 	dp.AbsolutePath, dp.RepoPath, dp.RelativePath,
 	dp.PrimaryIndicator, dp.DetectedAt, r.RepoName
-	FROM DetectedProjects dp
-	JOIN ProjectTypes pt ON dp.ProjectTypeId = pt.Id
+	FROM DetectedProject dp
+	JOIN ProjectType pt ON dp.ProjectTypeId = pt.ProjectTypeId
 	JOIN Repo r ON dp.RepoId = r.RepoId
 	WHERE pt.Key = ?
 	ORDER BY r.RepoName, dp.RelativePath`
 
 // SQL: count projects by type key.
 const SQLCountProjectsByTypeKey = `SELECT COUNT(*)
-	FROM DetectedProjects dp
-	JOIN ProjectTypes pt ON dp.ProjectTypeId = pt.Id
+	FROM DetectedProject dp
+	JOIN ProjectType pt ON dp.ProjectTypeId = pt.ProjectTypeId
 	WHERE pt.Key = ?`
 
 // SQL: query Go metadata.
-const SQLSelectGoMetadata = `SELECT Id, DetectedProjectId, GoModPath, GoSumPath,
+const SQLSelectGoMetadata = `SELECT GoProjectMetadataId, DetectedProjectId, GoModPath, GoSumPath,
 	ModuleName, GoVersion
 	FROM GoProjectMetadata WHERE DetectedProjectId = ?`
 
 // SQL: query Go runnables.
-const SQLSelectGoRunnables = `SELECT Id, GoMetadataId, RunnableName, FilePath,
+const SQLSelectGoRunnables = `SELECT GoRunnableFileId, GoMetadataId, RunnableName, FilePath,
 	RelativePath
-	FROM GoRunnableFiles WHERE GoMetadataId = ?
+	FROM GoRunnableFile WHERE GoMetadataId = ?
 	ORDER BY RunnableName`
 
 // SQL: query C# metadata.
-const SQLSelectCSharpMetadata = `SELECT Id, DetectedProjectId, SlnPath, SlnName,
+const SQLSelectCsharpMetadata = `SELECT CsharpProjectMetadataId, DetectedProjectId, SlnPath, SlnName,
 	GlobalJsonPath, SdkVersion
-	FROM CSharpProjectMetadata WHERE DetectedProjectId = ?`
+	FROM CsharpProjectMetadata WHERE DetectedProjectId = ?`
 
 // SQL: query C# project files.
-const SQLSelectCSharpProjectFiles = `SELECT Id, CSharpMetadataId, FilePath,
+const SQLSelectCsharpProjectFiles = `SELECT CsharpProjectFileId, CsharpMetadataId, FilePath,
 	RelativePath, FileName, ProjectName, TargetFramework, OutputType, Sdk
-	FROM CSharpProjectFiles WHERE CSharpMetadataId = ?
+	FROM CsharpProjectFile WHERE CsharpMetadataId = ?
 	ORDER BY RelativePath`
 
 // SQL: query C# key files.
-const SQLSelectCSharpKeyFiles = `SELECT Id, CSharpMetadataId, FileType, FilePath,
+const SQLSelectCsharpKeyFiles = `SELECT CsharpKeyFileId, CsharpMetadataId, FileType, FilePath,
 	RelativePath
-	FROM CSharpKeyFiles WHERE CSharpMetadataId = ?
+	FROM CsharpKeyFile WHERE CsharpMetadataId = ?
 	ORDER BY RelativePath`
 
-// SQL: stale cleanup.
+// SQL: stale cleanup (v15 singular tables, {Table}Id PKs in WHERE/IN clauses).
 const (
-	SQLDeleteStaleProjects       = "DELETE FROM DetectedProjects WHERE RepoId = ? AND Id NOT IN (%s)"
-	SQLDeleteStaleGoRunnables    = "DELETE FROM GoRunnableFiles WHERE GoMetadataId = ? AND Id NOT IN (%s)"
-	SQLDeleteStaleCSharpFiles    = "DELETE FROM CSharpProjectFiles WHERE CSharpMetadataId = ? AND Id NOT IN (%s)"
-	SQLDeleteStaleCSharpKeyFiles = "DELETE FROM CSharpKeyFiles WHERE CSharpMetadataId = ? AND Id NOT IN (%s)"
+	SQLDeleteStaleProjects       = "DELETE FROM DetectedProject WHERE RepoId = ? AND DetectedProjectId NOT IN (%s)"
+	SQLDeleteStaleGoRunnables    = "DELETE FROM GoRunnableFile WHERE GoMetadataId = ? AND GoRunnableFileId NOT IN (%s)"
+	SQLDeleteStaleCsharpFiles    = "DELETE FROM CsharpProjectFile WHERE CsharpMetadataId = ? AND CsharpProjectFileId NOT IN (%s)"
+	SQLDeleteStaleCsharpKeyFiles = "DELETE FROM CsharpKeyFile WHERE CsharpMetadataId = ? AND CsharpKeyFileId NOT IN (%s)"
 )
 
-// SQL: drop project detection tables.
+// SQL: drop project detection tables (v15 names + legacy retained for Reset).
 const (
-	SQLDropGoRunnableFiles    = "DROP TABLE IF EXISTS GoRunnableFiles"
+	SQLDropGoRunnableFile     = "DROP TABLE IF EXISTS GoRunnableFile"
+	SQLDropGoRunnableFiles    = "DROP TABLE IF EXISTS GoRunnableFiles" // legacy
 	SQLDropGoProjectMetadata  = "DROP TABLE IF EXISTS GoProjectMetadata"
-	SQLDropCSharpKeyFiles     = "DROP TABLE IF EXISTS CSharpKeyFiles"
-	SQLDropCSharpProjectFiles = "DROP TABLE IF EXISTS CSharpProjectFiles"
-	SQLDropCSharpProjectMeta  = "DROP TABLE IF EXISTS CSharpProjectMetadata"
-	SQLDropDetectedProjects   = "DROP TABLE IF EXISTS DetectedProjects"
-	SQLDropProjectTypes       = "DROP TABLE IF EXISTS ProjectTypes"
+	SQLDropCsharpKeyFile      = "DROP TABLE IF EXISTS CsharpKeyFile"
+	SQLDropCsharpKeyFiles     = "DROP TABLE IF EXISTS CSharpKeyFiles"      // legacy (pre-Csharp + plural)
+	SQLDropCsharpProjectFile  = "DROP TABLE IF EXISTS CsharpProjectFile"
+	SQLDropCsharpProjectFiles = "DROP TABLE IF EXISTS CSharpProjectFiles"  // legacy
+	SQLDropCsharpProjectMeta  = "DROP TABLE IF EXISTS CsharpProjectMetadata"
+	SQLDropCsharpProjectMetaLegacy = "DROP TABLE IF EXISTS CSharpProjectMetadata" // legacy
+	SQLDropDetectedProject    = "DROP TABLE IF EXISTS DetectedProject"
+	SQLDropDetectedProjects   = "DROP TABLE IF EXISTS DetectedProjects" // legacy
+	SQLDropProjectType        = "DROP TABLE IF EXISTS ProjectType"
+	SQLDropProjectTypes       = "DROP TABLE IF EXISTS ProjectTypes"     // legacy
 )

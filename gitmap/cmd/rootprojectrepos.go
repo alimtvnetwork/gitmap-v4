@@ -28,8 +28,8 @@ func dispatchProjectRepos(command string) bool {
 
 		return true
 	}
-	if command == constants.CmdCSharpRepos || command == constants.CmdCSharpAlias {
-		runProjectRepos(constants.ProjectKeyCSharp, os.Args[2:])
+	if command == constants.CmdCsharpRepos || command == constants.CmdCsharpAlias {
+		runProjectRepos(constants.ProjectKeyCsharp, os.Args[2:])
 
 		return true
 	}
