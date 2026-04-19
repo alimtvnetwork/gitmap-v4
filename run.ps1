@@ -665,11 +665,12 @@ function Deploy-Binary {
     # Migrate any legacy unwrapped layout (DFD-3) BEFORE we resolve $appDir.
     Repair-DeployLayout -DeployTarget $target -BinaryName $Config.binaryName
 
-    # Deploy into nested gitmap/ subfolder (DFD-1)
-    $appDir = Join-Path $target "gitmap"
+    # Deploy into nested gitmap-cli/ subfolder (DFD-1, renamed in v3.6.0
+    # from "gitmap" to remove visual collision with the binary name).
+    $appDir = Join-Path $target "gitmap-cli"
     if (-not (Test-Path $appDir)) {
         New-Item -ItemType Directory -Path $appDir -Force | Out-Null
-        Write-Info "Created gitmap app directory"
+        Write-Info "Created gitmap-cli app directory"
     }
 
     # Pre-deploy cleanup (DFD-6) — runs BEFORE the new binary is copied
@@ -774,17 +775,53 @@ function Deploy-Binary {
 }
 
 # -- Repair legacy unwrapped layout (DFD-3) --------------------
-# If <DeployTarget>\<binaryName> exists at the top level (not nested
-# under <DeployTarget>\gitmap\), move it + sibling data/ into the
-# gitmap/ subfolder. Idempotent.
+# Two migrations happen here, in priority order. Both are idempotent.
+#
+#   1) v3.6.0 rename: <DeployTarget>\gitmap\ -> <DeployTarget>\gitmap-cli\
+#      Triggered when an old install lives in the legacy "gitmap" subfolder
+#      and the new "gitmap-cli" folder does not yet exist (or is empty).
+#      The whole folder (binary + data + docs) is moved, then the empty
+#      legacy folder is removed.
+#
+#   2) Pre-v3.6.0 unwrapped layout: <DeployTarget>\gitmap.exe (top-level)
+#      gets nested under <DeployTarget>\gitmap-cli\ for DFD-1 compatibility.
 function Repair-DeployLayout {
     param(
         [string]$DeployTarget,
         [string]$BinaryName
     )
 
+    $appDir = Join-Path $DeployTarget "gitmap-cli"
+    $legacySubdir = Join-Path $DeployTarget "gitmap"
+    $legacySubBinary = Join-Path $legacySubdir $BinaryName
+    $newBinary = Join-Path $appDir $BinaryName
+
+    # Migration 1: rename legacy gitmap\ subfolder to gitmap-cli\.
+    if ((Test-Path $legacySubBinary) -and (-not (Test-Path $newBinary))) {
+        Write-Info "Layout: migrating legacy '$legacySubdir' -> '$appDir' (v3.6.0 rename)"
+        try {
+            if (-not (Test-Path $appDir)) {
+                Move-Item -Path $legacySubdir -Destination $appDir -Force -ErrorAction Stop
+                Write-Info "Layout: rename complete"
+            }
+        } catch {
+            Write-Warn "Layout: rename failed ($_); leaving legacy folder in place"
+        }
+    } elseif ((Test-Path $legacySubdir) -and (Test-Path $newBinary)) {
+        # Both exist after a previous half-migration — drop the empty legacy folder.
+        try {
+            $remaining = Get-ChildItem -Path $legacySubdir -Force -ErrorAction SilentlyContinue
+            if (-not $remaining -or $remaining.Count -eq 0) {
+                Remove-Item $legacySubdir -Force -Recurse -ErrorAction Stop
+                Write-Info "Layout: removed empty legacy folder $legacySubdir"
+            }
+        } catch {
+            Write-Warn "Layout: could not remove legacy folder $legacySubdir : $_"
+        }
+    }
+
+    # Migration 2: top-level unwrapped binary -> gitmap-cli\.
     $legacyBinary = Join-Path $DeployTarget $BinaryName
-    $appDir = Join-Path $DeployTarget "gitmap"
     $wrappedBinary = Join-Path $appDir $BinaryName
 
     if (-not (Test-Path $legacyBinary)) {
@@ -1260,7 +1297,7 @@ if (-not $NoDeploy) {
     Deploy-Binary -Config $config -BinaryPath $binaryPath -OverridePath $DeployPath
 
     $effectiveDeployPath = Resolve-DeployTarget -Config $config -OverridePath $DeployPath
-    $deployedAppDir = Join-Path $effectiveDeployPath "gitmap"
+    $deployedAppDir = Join-Path $effectiveDeployPath "gitmap-cli"
     $deployedBinaryPath = Join-Path $deployedAppDir $config.binaryName
 
     # Persist the resolved target so future runs (and the config-binary
