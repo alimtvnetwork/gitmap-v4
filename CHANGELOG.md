@@ -1,5 +1,38 @@
 # Changelog
 
+## v3.5.0 — (2026-04-19) — v15 Database Naming Alignment (Phase 1 complete)
+
+### Changed
+
+- **Phase 1 of the v15 database naming migration is complete.** All 22 SQLite tables now follow the strict v15 convention from <https://github.com/alimtvnetwork/coding-guidelines-v15/blob/main/spec/04-database-conventions/01-naming-conventions.md>: PascalCase + **singular** table names, `{TableName}Id` primary keys, foreign keys that match the referenced PK name, `IsX` prefix for booleans, and abbreviations treated as words (`SshKey` not `SSHKey`, `CsharpProjectMetadata` not `CSharpProjectMetadata`).
+- **Renamed tables** (legacy → v15): `Repos`→`Repo`, `Groups`→`Group`, `GroupRepos`→`GroupRepo`, `Releases`→`Release`, `Aliases`→`Alias`, `Bookmarks`→`Bookmark`, `Amendments`→`Amendment`, `CommitTemplates`→`CommitTemplate`, `Settings`→`Setting`, `SSHKeys`→`SshKey`, `InstalledTools`→`InstalledTool`, `TempReleases`→`TempRelease`, `ZipGroups`→`ZipGroup`, `ZipGroupItems`→`ZipGroupItem`, `ProjectTypes`→`ProjectType`, `DetectedProjects`→`DetectedProject`, `GoProjectMetadata` (kept), `GoRunnableFiles`→`GoRunnableFile`, `CSharpProjectMeta`→`CsharpProjectMetadata`, `CSharpProjectFiles`→`CsharpProjectFile`, `CSharpKeyFiles`→`CsharpKeyFile`. `RepoVersionHistory`, `CommandHistory`, `TaskType`, `PendingTask`, `CompletedTask` were already singular and only got `{TableName}Id` PK renames.
+- **Renamed columns**: every legacy `Id` PK is now `{TableName}Id` (e.g., `Repo.RepoId`, `Release.ReleaseId`, `CsharpProjectMetadata.CsharpProjectMetadataId`). Foreign keys updated to match (e.g., `GoRunnableFile.GoProjectMetadataId`, `CsharpProjectFile.CsharpProjectMetadataId`). `Release.Draft` → `Release.IsDraft` and `Release.PreRelease` → `Release.IsPreRelease` complete the IsX boolean-prefix consistency (`IsLatest` was already correct).
+- **Migration safety contract** (applies to every Phase 1.1–1.5 rebuild):
+  1. Detect-then-act on every legacy plural — fresh installs are no-ops.
+  2. `PRAGMA foreign_keys=OFF` for the duration of each table rebuild.
+  3. Row-count parity check between old and new on every rebuild — abort + return on mismatch.
+  4. Legacy plural names retained as `LegacyTable*` constants and listed in `Reset()` so cleanup works at any migration state.
+  5. SQLite-reserved word `Group` is double-quoted in every DDL/DML occurrence.
+- **Go-side propagation**: `model.ReleaseRecord.Draft/PreRelease` → `IsDraft/IsPreRelease` (with JSON tags `isDraft`/`isPreRelease`); `release.Options.Draft` → `release.Options.IsDraft`; `release.ReleaseMeta.Draft/PreRelease` → `IsDraft/IsPreRelease`. `ReadReleaseMeta` includes a JSON overlay that accepts the legacy `"draft"`/`"preRelease"` keys so on-disk `.gitmap/release/*.json` files from v3.4.x and earlier still load.
+- **CLI flag `--draft`** is intentionally retained (user-facing). Internal struct fields use the v15 `IsX` naming.
+
+### Added
+
+- New shared migration infrastructure in `gitmap/store/migrate_v15rebuild.go` — generic `runV15Rebuild(spec)` helper using a `v15RebuildSpec` struct (OldTable, NewTable, NewCreateSQL, OldColumnList, NewColumnList, StartMsg, DoneMsg). Drives all 22 table rebuilds.
+- New phase migrators wired into `store.Migrate()` in dependency-safe order:
+  - `migrate_v15phase2.go` — Group, Release, Alias, Bookmark + GroupRepo FK-text rebuild.
+  - `migrate_v15phase3.go` — Amendment, CommitTemplate, Setting, SshKey, InstalledTool, TempRelease.
+  - `migrate_v15phase4.go` — ZipGroup family, Project family (incl. CSharp→Csharp), Task family, History tables.
+  - `migrate_v15phase5.go` — `Release.Draft`→`IsDraft`, `Release.PreRelease`→`IsPreRelease` (column rename via the same rebuild infrastructure).
+- Pre-rename column patches for very old installs: `preV15Phase2EnsureReleaseColumns()` (Source/Notes on legacy `Releases`), `migrateZipGroupItemPaths()` and `migrateTRCommitSha()` already targeted legacy plurals before the v15 rebuilds copied the data.
+- Regenerated `spec/01-app/gitmap-database-erd.mmd` to reflect every v15 table name, PK, FK, and `IsDraft`/`IsPreRelease` boolean.
+- Updated `spec/12-consolidated-guidelines/11-database.md` with the v15 naming conventions table (singular + `{TableName}Id` + `IsX` boolean prefix + reserved-word quoting + abbreviation rules), with a link to the upstream v15 spec.
+
+### Notes
+
+- This release is purely a naming alignment — no new commands, no behavior changes for end users beyond the schema. Existing databases upgrade in place via the idempotent rebuild migrators; rollback is via `gitmap db-migrate` against an older binary's CREATE statements after restoring a DB backup.
+- Phase 2 (ScanFolder, VersionProbe, `gitmap find-next`) and Phase 3 (parallel `pull`, bulk `cn next all`) remain on the roadmap.
+
 ## v3.0.0 — (2026-04-19)
 
 ### Added
