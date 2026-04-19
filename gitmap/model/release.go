@@ -2,6 +2,7 @@
 package model
 
 // ReleaseRecord holds release metadata stored in the database.
+// v15: boolean fields use the IsX prefix convention.
 type ReleaseRecord struct {
 	ID           int64  `json:"id"`
 	Version      string `json:"version"`
@@ -11,8 +12,8 @@ type ReleaseRecord struct {
 	CommitSha    string `json:"commitSha"`
 	Changelog    string `json:"changelog"`
 	Notes        string `json:"notes"`
-	Draft        bool   `json:"draft"`
-	PreRelease   bool   `json:"preRelease"`
+	IsDraft      bool   `json:"isDraft"`
+	IsPreRelease bool   `json:"isPreRelease"`
 	IsLatest     bool   `json:"isLatest"`
 	Source       string `json:"source"`
 	CreatedAt    string `json:"createdAt"`

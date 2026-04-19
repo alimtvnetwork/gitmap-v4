@@ -126,7 +126,7 @@ func printReleasesTerminal(releases []model.ReleaseRecord) {
 // printReleaseRow prints a single release row.
 func printReleaseRow(r model.ReleaseRecord) {
 	draft := constants.MsgNo
-	if r.Draft {
+	if r.IsDraft {
 		draft = constants.MsgYes
 	}
 	latest := constants.MsgNo

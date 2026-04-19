@@ -10,7 +10,7 @@ import (
 )
 
 // ExecuteFromBranch runs the release workflow from an existing release branch.
-func ExecuteFromBranch(branchName, assetsPath, notes string, draft, dryRun, noCommit, yes bool) error {
+func ExecuteFromBranch(branchName, assetsPath, notes string, isDraft, dryRun, noCommit, yes bool) error {
 	version, err := extractVersionFromBranch(branchName)
 	if err != nil {
 		return err
@@ -25,11 +25,11 @@ func ExecuteFromBranch(branchName, assetsPath, notes string, draft, dryRun, noCo
 
 	if dryRun {
 		return printDryRun(version, branchName, version.String(), branchName, Options{
-			Assets: assetsPath, Notes: notes, Draft: draft, DryRun: true,
+			Assets: assetsPath, Notes: notes, IsDraft: isDraft, DryRun: true,
 		})
 	}
 
-	return completeBranchRelease(version, branchName, assetsPath, notes, draft, noCommit, yes)
+	return completeBranchRelease(version, branchName, assetsPath, notes, isDraft, noCommit, yes)
 }
 
 // extractVersionFromBranch parses the version from a release branch name.
@@ -54,7 +54,7 @@ func validateExistingBranch(branchName string, v Version) error {
 }
 
 // completeBranchRelease checks out the branch and runs tag/push/release.
-func completeBranchRelease(v Version, branchName, assetsPath, notes string, draft, noCommit, yes bool) error {
+func completeBranchRelease(v Version, branchName, assetsPath, notes string, isDraft, noCommit, yes bool) error {
 	originalBranch, branchErr := CurrentBranchName()
 	if branchErr != nil {
 		fmt.Fprintf(os.Stderr, "  ⚠ Could not determine current branch: %v\n", branchErr)
@@ -74,7 +74,7 @@ func completeBranchRelease(v Version, branchName, assetsPath, notes string, draf
 	}
 	fmt.Printf(constants.MsgReleaseTag, tag)
 
-	opts := Options{Assets: assetsPath, Notes: notes, Draft: draft, SkipMeta: true}
+	opts := Options{Assets: assetsPath, Notes: notes, IsDraft: isDraft, SkipMeta: true}
 
 	err = pushAndFinalize(v, branchName, tag, branchName, opts)
 	if err != nil {
@@ -99,7 +99,7 @@ func completeBranchRelease(v Version, branchName, assetsPath, notes string, draf
 
 // ExecutePending finds all release branches without tags and releases them.
 // Also discovers unreleased versions from .gitmap/release/v*.json metadata files.
-func ExecutePending(assetsPath, notes string, draft, dryRun, noCommit, yes bool) error {
+func ExecutePending(assetsPath, notes string, isDraft, dryRun, noCommit, yes bool) error {
 	branches, err := listReleaseBranches()
 	if err != nil {
 		return fmt.Errorf("could not list release branches: %w", err)
@@ -121,18 +121,18 @@ func ExecutePending(assetsPath, notes string, draft, dryRun, noCommit, yes bool)
 		fmt.Printf(constants.MsgPendingMetaFound, len(metaPending))
 	}
 
-	err = releasePendingBranches(pending, assetsPath, notes, draft, dryRun, noCommit, yes)
+	err = releasePendingBranches(pending, assetsPath, notes, isDraft, dryRun, noCommit, yes)
 	if err != nil {
 		return err
 	}
 
-	return releasePendingFromMetadata(metaPending, assetsPath, notes, draft, dryRun)
+	return releasePendingFromMetadata(metaPending, assetsPath, notes, isDraft, dryRun)
 }
 
 // releasePendingBranches iterates and releases each pending branch.
-func releasePendingBranches(pending []string, assetsPath, notes string, draft, dryRun, noCommit, yes bool) error {
+func releasePendingBranches(pending []string, assetsPath, notes string, isDraft, dryRun, noCommit, yes bool) error {
 	for _, branchName := range pending {
-		err := ExecuteFromBranch(branchName, assetsPath, notes, draft, dryRun, noCommit, yes)
+		err := ExecuteFromBranch(branchName, assetsPath, notes, isDraft, dryRun, noCommit, yes)
 		if err != nil {
 			fmt.Printf(constants.MsgReleasePendingFailed, branchName, err)
 			continue

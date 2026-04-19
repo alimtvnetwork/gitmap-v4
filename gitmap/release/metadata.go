@@ -12,6 +12,9 @@ import (
 )
 
 // ReleaseMeta holds metadata for a single release.
+// v15: boolean fields use the IsX prefix convention. ReadReleaseMeta below
+// adds backward-compat aliases so old "draft"/"preRelease" JSON files load
+// without breakage; new files are written using the IsX form.
 type ReleaseMeta struct {
 	Version           string            `json:"version"`
 	Branch            string            `json:"branch"`
@@ -23,8 +26,8 @@ type ReleaseMeta struct {
 	Notes             string            `json:"notes,omitempty"`
 	ZipGroups         []string          `json:"zipGroups,omitempty"`
 	ZipGroupChecksums map[string]string `json:"zipGroupChecksums,omitempty"`
-	Draft             bool              `json:"draft"`
-	PreRelease        bool              `json:"preRelease"`
+	IsDraft           bool              `json:"isDraft"`
+	IsPreRelease      bool              `json:"isPreRelease"`
 	CreatedAt         string            `json:"createdAt"`
 	IsLatest          bool              `json:"isLatest"`
 }
@@ -133,6 +136,8 @@ func ReadVersionFile() (string, error) {
 }
 
 // ReadReleaseMeta reads and unmarshals a single .gitmap/release/vX.Y.Z.json file.
+// Provides backward-compat for the pre-v15 "draft" / "preRelease" JSON keys
+// by overlaying a legacy struct after the primary unmarshal.
 func ReadReleaseMeta(path string) (ReleaseMeta, error) {
 	data, err := os.ReadFile(path)
 	if err != nil {
@@ -141,8 +146,27 @@ func ReadReleaseMeta(path string) (ReleaseMeta, error) {
 
 	var meta ReleaseMeta
 	err = json.Unmarshal(data, &meta)
+	if err != nil {
+		return meta, err
+	}
 
-	return meta, err
+	// Legacy field names (v3.4.x and earlier). Only override when the new
+	// IsX field is the zero value AND the legacy field is set, so a
+	// re-saved (post-v15) file is never downgraded.
+	var legacy struct {
+		Draft      *bool `json:"draft"`
+		PreRelease *bool `json:"preRelease"`
+	}
+	if jsonErr := json.Unmarshal(data, &legacy); jsonErr == nil {
+		if !meta.IsDraft && legacy.Draft != nil && *legacy.Draft {
+			meta.IsDraft = true
+		}
+		if !meta.IsPreRelease && legacy.PreRelease != nil && *legacy.PreRelease {
+			meta.IsPreRelease = true
+		}
+	}
+
+	return meta, nil
 }
 
 // ListReleaseMetaFiles reads all .gitmap/release/v*.json files and returns parsed metadata.

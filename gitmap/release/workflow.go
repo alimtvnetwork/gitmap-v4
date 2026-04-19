@@ -15,6 +15,7 @@ import (
 
 
 // Options holds all parameters for a release operation.
+// v15: boolean fields use the IsX prefix convention.
 type Options struct {
 	Version       string
 	Assets        string
@@ -27,7 +28,7 @@ type Options struct {
 	ZipGroups     []string
 	ZipItems      []string
 	BundleName    string
-	Draft         bool
+	IsDraft       bool
 	DryRun        bool
 	Verbose       bool
 	Compress      bool
@@ -111,7 +112,7 @@ func tryDelegateFromBranch(v Version, opts Options) (bool, error) {
 
 	fmt.Printf(constants.MsgReleaseBranchPending, branchName)
 
-	return true, ExecuteFromBranch(branchName, opts.Assets, opts.Notes, opts.Draft, opts.DryRun, opts.NoCommit, opts.Yes)
+	return true, ExecuteFromBranch(branchName, opts.Assets, opts.Notes, opts.IsDraft, opts.DryRun, opts.NoCommit, opts.Yes)
 }
 
 // tryDelegateFromCurrentBranch checks if we're on a release/* branch
@@ -138,7 +139,7 @@ func tryDelegateFromCurrentBranch(opts Options) (bool, error) {
 
 	fmt.Printf(constants.MsgReleaseBranchPending, currentBranch)
 
-	return true, ExecuteFromBranch(currentBranch, opts.Assets, opts.Notes, opts.Draft, opts.DryRun, opts.NoCommit, opts.Yes)
+	return true, ExecuteFromBranch(currentBranch, opts.Assets, opts.Notes, opts.IsDraft, opts.DryRun, opts.NoCommit, opts.Yes)
 }
 
 // resolveVersion determines the version from CLI args, bump, or file.

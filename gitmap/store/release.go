@@ -9,9 +9,10 @@ import (
 )
 
 // UpsertRelease inserts or updates a release record in the database.
+// v15: persists IsDraft / IsPreRelease columns.
 func (db *DB) UpsertRelease(r model.ReleaseRecord) error {
-	draft := boolToInt(r.Draft)
-	preRelease := boolToInt(r.PreRelease)
+	isDraft := boolToInt(r.IsDraft)
+	isPreRelease := boolToInt(r.IsPreRelease)
 	isLatest := boolToInt(r.IsLatest)
 
 	if r.IsLatest {
@@ -22,7 +23,7 @@ func (db *DB) UpsertRelease(r model.ReleaseRecord) error {
 
 	_, err := db.conn.Exec(constants.SQLUpsertRelease,
 		r.Version, r.Tag, r.Branch, r.SourceBranch,
-		r.CommitSha, r.Changelog, r.Notes, draft, preRelease, isLatest, r.Source, r.CreatedAt,
+		r.CommitSha, r.Changelog, r.Notes, isDraft, isPreRelease, isLatest, r.Source, r.CreatedAt,
 	)
 	if err != nil {
 		return fmt.Errorf(constants.ErrDBReleaseUpsert, err)
@@ -80,16 +81,16 @@ func scanReleaseRows(rows interface {
 // scanOneReleaseRow reads a single ReleaseRecord from a row scanner.
 func scanOneReleaseRow(row interface{ Scan(dest ...any) error }) (model.ReleaseRecord, error) {
 	var r model.ReleaseRecord
-	var draft, preRelease, isLatest int
+	var isDraft, isPreRelease, isLatest int
 
 	err := row.Scan(&r.ID, &r.Version, &r.Tag, &r.Branch, &r.SourceBranch,
-		&r.CommitSha, &r.Changelog, &r.Notes, &draft, &preRelease, &isLatest, &r.Source, &r.CreatedAt)
+		&r.CommitSha, &r.Changelog, &r.Notes, &isDraft, &isPreRelease, &isLatest, &r.Source, &r.CreatedAt)
 	if err != nil {
 		return model.ReleaseRecord{}, err
 	}
 
-	r.Draft = draft == 1
-	r.PreRelease = preRelease == 1
+	r.IsDraft = isDraft == 1
+	r.IsPreRelease = isPreRelease == 1
 	r.IsLatest = isLatest == 1
 
 	return r, nil

@@ -129,8 +129,8 @@ func (m releasesModel) viewDetail() string {
 	writeField(&b, "Commit", shortSHA(r.CommitSha))
 	writeField(&b, "Source", r.Source)
 	writeField(&b, "Date", r.CreatedAt)
-	writeField(&b, "Draft", boolLabel(r.Draft))
-	writeField(&b, "Pre-release", boolLabel(r.PreRelease))
+	writeField(&b, "Draft", boolLabel(r.IsDraft))
+	writeField(&b, "Pre-release", boolLabel(r.IsPreRelease))
 	writeField(&b, "Latest", boolLabel(r.IsLatest))
 
 	if len(r.Notes) > 0 {

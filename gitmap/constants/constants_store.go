@@ -62,7 +62,7 @@ const SQLCreateGroupRepo = `CREATE TABLE IF NOT EXISTS GroupRepo (
 	PRIMARY KEY (GroupId, RepoId)
 )`
 
-// SQL: create Release table (v15: singular + ReleaseId PK).
+// SQL: create Release table (v15: singular + ReleaseId PK + IsX boolean prefix).
 const SQLCreateRelease = `CREATE TABLE IF NOT EXISTS Release (
 	ReleaseId    INTEGER PRIMARY KEY AUTOINCREMENT,
 	Version      TEXT NOT NULL,
@@ -72,8 +72,8 @@ const SQLCreateRelease = `CREATE TABLE IF NOT EXISTS Release (
 	CommitSha    TEXT NOT NULL,
 	Changelog    TEXT DEFAULT '',
 	Notes        TEXT DEFAULT '',
-	Draft        INTEGER DEFAULT 0,
-	PreRelease   INTEGER DEFAULT 0,
+	IsDraft      INTEGER DEFAULT 0,
+	IsPreRelease INTEGER DEFAULT 0,
 	IsLatest     INTEGER DEFAULT 0,
 	Source       TEXT DEFAULT 'release',
 	CreatedAt    TEXT DEFAULT CURRENT_TIMESTAMP
@@ -139,19 +139,19 @@ const (
 // SQL: import-side group insert (used by store/import.go to insert without conflict).
 const SQLImportInsertGroup = `INSERT OR IGNORE INTO "Group" (Name, Description, Color) VALUES (?, ?, ?)`
 
-// SQL: release operations (v15: Release singular, ReleaseId PK).
+// SQL: release operations (v15: Release singular, ReleaseId PK, IsDraft/IsPreRelease).
 const (
-	SQLUpsertRelease = `INSERT INTO Release (Version, Tag, Branch, SourceBranch, CommitSha, Changelog, Notes, Draft, PreRelease, IsLatest, Source, CreatedAt)
+	SQLUpsertRelease = `INSERT INTO Release (Version, Tag, Branch, SourceBranch, CommitSha, Changelog, Notes, IsDraft, IsPreRelease, IsLatest, Source, CreatedAt)
 		VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
 		ON CONFLICT(Tag) DO UPDATE SET
 			Version=excluded.Version, Branch=excluded.Branch, SourceBranch=excluded.SourceBranch,
-			CommitSha=excluded.CommitSha, Changelog=excluded.Changelog, Notes=excluded.Notes, Draft=excluded.Draft,
-			PreRelease=excluded.PreRelease, IsLatest=excluded.IsLatest, Source=excluded.Source`
+			CommitSha=excluded.CommitSha, Changelog=excluded.Changelog, Notes=excluded.Notes, IsDraft=excluded.IsDraft,
+			IsPreRelease=excluded.IsPreRelease, IsLatest=excluded.IsLatest, Source=excluded.Source`
 
-	SQLSelectAllReleases = `SELECT ReleaseId, Version, Tag, Branch, SourceBranch, CommitSha, Changelog, Notes, Draft, PreRelease, IsLatest, Source, CreatedAt
+	SQLSelectAllReleases = `SELECT ReleaseId, Version, Tag, Branch, SourceBranch, CommitSha, Changelog, Notes, IsDraft, IsPreRelease, IsLatest, Source, CreatedAt
 		FROM Release ORDER BY CreatedAt DESC`
 
-	SQLSelectReleaseByTag = `SELECT ReleaseId, Version, Tag, Branch, SourceBranch, CommitSha, Changelog, Notes, Draft, PreRelease, IsLatest, Source, CreatedAt
+	SQLSelectReleaseByTag = `SELECT ReleaseId, Version, Tag, Branch, SourceBranch, CommitSha, Changelog, Notes, IsDraft, IsPreRelease, IsLatest, Source, CreatedAt
 		FROM Release WHERE Tag = ?`
 
 	SQLClearLatestRelease = "UPDATE Release SET IsLatest = 0 WHERE IsLatest = 1"
@@ -199,4 +199,5 @@ const (
 	ErrV15Phase2Migration    = "v15 Phase 1.2 migration failed: %v"
 	ErrV15Phase3Migration    = "v15 Phase 1.3 migration failed: %v"
 	ErrV15Phase4Migration    = "v15 Phase 1.4 migration failed: %v"
+	ErrV15Phase5Migration    = "v15 Phase 1.5 migration failed: %v"
 )
