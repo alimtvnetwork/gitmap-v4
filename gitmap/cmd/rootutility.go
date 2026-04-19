@@ -94,6 +94,11 @@ func dispatchUtility(command string) bool {
 
 		return true
 	}
+	if command == constants.CmdSf {
+		runSf(os.Args[2:])
+
+		return true
+	}
 
 	return false
 }

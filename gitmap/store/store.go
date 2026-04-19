@@ -140,6 +140,10 @@ func (db *DB) Migrate() error {
 		constants.SQLCreatePendingTask,
 		constants.SQLCreateCompletedTask,
 		constants.SQLCreateRepoVersionHistory,
+		constants.SQLCreateScanFolder,
+		constants.SQLCreateScanFolderPathIndex,
+		constants.SQLCreateVersionProbe,
+		constants.SQLCreateVersionProbeRepoIndex,
 	}
 
 	for _, stmt := range statements {
@@ -151,6 +155,7 @@ func (db *DB) Migrate() error {
 	db.migrateSourceColumn()
 	db.migrateNotesColumn()
 	db.migrateRepoVersionColumns()
+	db.migrateRepoScanFolderID()
 
 	if err := db.SeedProjectTypes(); err != nil {
 		return err
@@ -209,6 +214,13 @@ func (db *DB) preV15Phase2EnsureReleaseColumns() {
 func (db *DB) migrateRepoVersionColumns() {
 	db.addColumnIfNotExists(constants.SQLAddCurrentVersionTag)
 	db.addColumnIfNotExists(constants.SQLAddCurrentVersionNum)
+}
+
+// migrateRepoScanFolderID adds the nullable ScanFolderId FK column to Repo
+// (v3.7.0, Phase 2.1). No backfill — existing rows stay NULL until the next
+// `gitmap scan` re-discovers them.
+func (db *DB) migrateRepoScanFolderID() {
+	db.addColumnIfNotExists(constants.SQLAddRepoScanFolderId)
 }
 
 // migrateZipGroupItemPaths adds RepoPath, RelativePath, FullPath columns
@@ -307,6 +319,8 @@ func (db *DB) Reset() error {
 		constants.SQLDropInstalledTool,
 		constants.SQLDropInstalledTools, // legacy
 		constants.SQLDropRepoVersionHistory,
+		constants.SQLDropVersionProbe,
+		constants.SQLDropScanFolder,
 		constants.SQLDropRepo,
 		constants.SQLDropRepos, // legacy
 	}

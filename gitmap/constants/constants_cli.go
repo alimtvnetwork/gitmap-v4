@@ -79,6 +79,7 @@ const (
 	CmdSetSourceRepo         = "set-source-repo" // gitmap:cmd skip
 	CmdSelfInstall           = "self-install"
 	CmdSelfUninstall         = "self-uninstall"
+	CmdSf                    = "sf"
 )
 
 // Clone shorthands.
@@ -123,6 +124,7 @@ const (
 	HelpList             = "  list (ls)           Show all tracked repos with slugs"
 	HelpGroup            = "  group (g) <sub>     Manage repo groups / activate group for batch ops"
 	HelpMultiGroup       = "  multi-group (mg)    Select multiple groups for batch operations"
+	HelpSf               = "  sf <add|list|rm>    Manage scan folders (roots that gitmap scan tracks)"
 	HelpDBReset          = "  db-reset --confirm  Clear all tracked repos and groups from the database"
 	HelpCompletion       = "  completion (cmp)    Generate shell tab-completion scripts"
 	HelpClearReleaseJSON = "  clear-release-json (crj)  Remove a .gitmap/release/vX.Y.Z.json file"
