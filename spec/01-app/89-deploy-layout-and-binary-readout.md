@@ -25,7 +25,7 @@ After every successful deploy, `Sync-ConfigDeployPath` rewrites `powershell.json
 
 ## Bare-invocation binary readout
 
-Running `gitmap` with no arguments prints a three-line readout BEFORE the usage text:
+Running `gitmap` with no arguments prints a three-line readout BEFORE the usage text. The readout always prints (even when all three paths match) so users build a habit of recognising which binary they're hitting; CI scripts and pipelines that capture gitmap output can suppress it with `--no-banner` or by setting `GITMAP_QUIET=1`:
 
 ```
   Active binary:    E:\bin-run\gitmap-cli\gitmap.exe
@@ -37,6 +37,16 @@ Running `gitmap` with no arguments prints a three-line readout BEFORE the usage 
 ```
 
 Definitions:
+
+- **Active binary** — `os.Executable()` after `filepath.EvalSymlinks`. The file the OS actually loaded for this process.
+- **Deployed binary** — `<powershell.json.deployPath>/gitmap-cli/gitmap.exe` if the file exists on disk; empty otherwise.
+- **Config binary** — the literal path that `powershell.json` declares, whether or not the file exists. Represents config intent.
+
+When all three match, the readout is informational. When they diverge, it pinpoints the exact source of "wrong version" or "stale binary" issues without requiring `gitmap doctor`.
+
+## Legacy layout migration
+
+When `run.ps1` runs and detects the legacy `<deployRoot>/gitmap/gitmap.exe` layout, `Repair-DeployLayout` silently moves the binary to `<deployRoot>/gitmap-cli/gitmap.exe` and removes the empty legacy `gitmap/` folder. No prompt, no user action required. Idempotent — re-runs are no-ops once migrated. The bare-invocation readout will then naturally show the new path next time the user invokes `gitmap`.
 
 - **Active binary** — `os.Executable()` after `filepath.EvalSymlinks`. The file the OS actually loaded for this process.
 - **Deployed binary** — `<powershell.json.deployPath>/gitmap-cli/gitmap.exe` if the file exists on disk; empty otherwise.
