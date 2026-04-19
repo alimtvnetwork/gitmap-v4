@@ -183,7 +183,7 @@ func writeInstallScriptTemp(name string, body []byte) string {
 // executeInstallScript invokes PowerShell or bash on the script with the
 // resolved install directory and optional version.
 func executeInstallScript(name, path, dir, version string) {
-	cmd := buildInstallCommand(name, path, dir, version)
+	cmd := buildSelfInstallCmd(name, path, dir, version)
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
 	cmd.Stdin = os.Stdin
@@ -193,8 +193,8 @@ func executeInstallScript(name, path, dir, version string) {
 	}
 }
 
-// buildInstallCommand assembles the platform-specific exec.Cmd.
-func buildInstallCommand(name, path, dir, version string) *exec.Cmd {
+// buildSelfInstallCmd assembles the platform-specific exec.Cmd.
+func buildSelfInstallCmd(name, path, dir, version string) *exec.Cmd {
 	if strings.HasSuffix(name, ".ps1") {
 		args := []string{"-ExecutionPolicy", "Bypass", "-NoProfile",
 			"-NoLogo", "-File", path, "-InstallDir", dir}
