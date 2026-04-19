@@ -10,7 +10,7 @@ import (
 func formatRelRow(r model.ReleaseRecord) string {
 	return fmt.Sprintf("%-12s %-14s %-20s %-8s %-8s %-8s %s",
 		r.Version, r.Tag, truncateStr(r.Branch, 20),
-		boolLabel(r.Draft), boolLabel(r.IsLatest),
+		boolLabel(r.IsDraft), boolLabel(r.IsLatest),
 		r.Source, r.CreatedAt)
 }
 
