@@ -231,13 +231,17 @@ func (db *DB) Reset() error {
 		constants.SQLDropProjectTypes,
 		constants.SQLDropGroupRepo,
 		constants.SQLDropGroupRepos, // legacy plural — safe even if absent
-		constants.SQLDropGroups,
-		constants.SQLDropReleases,
+		constants.SQLDropGroup,
+		constants.SQLDropGroups, // legacy plural — safe even if absent
+		constants.SQLDropRelease,
+		constants.SQLDropReleases, // legacy plural — safe even if absent
 		constants.SQLDropAmendments,
 		constants.SQLDropCommitTemplates,
 		constants.SQLDropCommandHistory,
-		constants.SQLDropBookmarks,
-		constants.SQLDropAliases,
+		constants.SQLDropBookmark,
+		constants.SQLDropBookmarks, // legacy plural — safe even if absent
+		constants.SQLDropAlias,
+		constants.SQLDropAliases, // legacy plural — safe even if absent
 		constants.SQLDropZipGroupItems,
 		constants.SQLDropTempReleases,
 		constants.SQLDropZipGroups,
