@@ -60,8 +60,7 @@ func (db *DB) importGroups(groups []model.GroupExport) error {
 
 // importOneGroup creates a group and links its member repos.
 func (db *DB) importOneGroup(ge model.GroupExport) error {
-	_, err := db.conn.Exec(
-		"INSERT OR IGNORE INTO Groups (Name, Description, Color) VALUES (?, ?, ?)",
+	_, err := db.conn.Exec(constants.SQLImportInsertGroup,
 		ge.Name, ge.Description, ge.Color)
 	if err != nil {
 		return err
@@ -120,8 +119,7 @@ func (db *DB) importHistory(records []model.CommandHistoryRecord) error {
 // importBookmarks inserts bookmarks, ignoring duplicates by name.
 func (db *DB) importBookmarks(bookmarks []model.BookmarkRecord) error {
 	for _, b := range bookmarks {
-		_, err := db.conn.Exec(
-			"INSERT OR IGNORE INTO Bookmarks (Name, Command, Args, Flags) VALUES (?, ?, ?, ?)",
+		_, err := db.conn.Exec(constants.SQLImportInsertBookmark,
 			b.Name, b.Command, b.Args, b.Flags)
 		if err != nil {
 			return err

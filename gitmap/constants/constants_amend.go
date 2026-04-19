@@ -98,12 +98,15 @@ const (
 // Amend-list error messages.
 const ErrAmendListFailed = "error: failed to list amendments: %v\n"
 
-// Amendments table.
-const TableAmendments = "Amendments"
+// Amendment table (v15: singular + AmendmentId PK).
+const TableAmendment = "Amendment"
 
-// Amendments SQL.
-const SQLCreateAmendments = `CREATE TABLE IF NOT EXISTS Amendments (
-	Id            INTEGER PRIMARY KEY AUTOINCREMENT,
+// Legacy plural retained for migration detection.
+const LegacyTableAmendments = "Amendments"
+
+// SQL: create Amendment table (v15).
+const SQLCreateAmendment = `CREATE TABLE IF NOT EXISTS Amendment (
+	AmendmentId   INTEGER PRIMARY KEY AUTOINCREMENT,
 	Branch        TEXT NOT NULL,
 	FromCommit    TEXT NOT NULL,
 	ToCommit      TEXT NOT NULL,
@@ -117,15 +120,17 @@ const SQLCreateAmendments = `CREATE TABLE IF NOT EXISTS Amendments (
 	CreatedAt     TEXT DEFAULT CURRENT_TIMESTAMP
 )`
 
+// SQL: amendment operations (v15).
 const (
-	SQLInsertAmendment = `INSERT INTO Amendments (Branch, FromCommit, ToCommit, TotalCommits, PreviousName, PreviousEmail, NewName, NewEmail, Mode, ForcePushed)
+	SQLInsertAmendment = `INSERT INTO Amendment (Branch, FromCommit, ToCommit, TotalCommits, PreviousName, PreviousEmail, NewName, NewEmail, Mode, ForcePushed)
 		VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
 
-	SQLSelectAllAmendments = `SELECT Id, Branch, FromCommit, ToCommit, TotalCommits, PreviousName, PreviousEmail, NewName, NewEmail, Mode, ForcePushed, CreatedAt
-		FROM Amendments ORDER BY CreatedAt DESC`
+	SQLSelectAllAmendments = `SELECT AmendmentId, Branch, FromCommit, ToCommit, TotalCommits, PreviousName, PreviousEmail, NewName, NewEmail, Mode, ForcePushed, CreatedAt
+		FROM Amendment ORDER BY CreatedAt DESC`
 
-	SQLSelectAmendmentsByBranch = `SELECT Id, Branch, FromCommit, ToCommit, TotalCommits, PreviousName, PreviousEmail, NewName, NewEmail, Mode, ForcePushed, CreatedAt
-		FROM Amendments WHERE Branch = ? ORDER BY CreatedAt DESC`
+	SQLSelectAmendmentsByBranch = `SELECT AmendmentId, Branch, FromCommit, ToCommit, TotalCommits, PreviousName, PreviousEmail, NewName, NewEmail, Mode, ForcePushed, CreatedAt
+		FROM Amendment WHERE Branch = ? ORDER BY CreatedAt DESC`
 
-	SQLDropAmendments = "DROP TABLE IF EXISTS Amendments"
+	SQLDropAmendment  = "DROP TABLE IF EXISTS Amendment"
+	SQLDropAmendments = "DROP TABLE IF EXISTS Amendments" // legacy
 )
