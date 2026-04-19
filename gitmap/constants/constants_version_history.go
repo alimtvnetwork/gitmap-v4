@@ -3,10 +3,10 @@ package constants
 // Table name for version history.
 const TableRepoVersionHistory = "RepoVersionHistory"
 
-// SQL: create RepoVersionHistory table.
+// SQL: create RepoVersionHistory table. FK now references v15 Repo(RepoId).
 const SQLCreateRepoVersionHistory = `CREATE TABLE IF NOT EXISTS RepoVersionHistory (
 	Id              INTEGER PRIMARY KEY AUTOINCREMENT,
-	RepoId          INTEGER NOT NULL REFERENCES Repos(Id) ON DELETE CASCADE,
+	RepoId          INTEGER NOT NULL REFERENCES Repo(RepoId) ON DELETE CASCADE,
 	FromVersionTag  TEXT NOT NULL,
 	FromVersionNum  INTEGER NOT NULL,
 	ToVersionTag    TEXT NOT NULL,
@@ -15,10 +15,10 @@ const SQLCreateRepoVersionHistory = `CREATE TABLE IF NOT EXISTS RepoVersionHisto
 	CreatedAt       TEXT DEFAULT CURRENT_TIMESTAMP
 )`
 
-// SQL: add version columns to Repos.
+// SQL: add version columns to Repo (v15 table name).
 const (
-	SQLAddCurrentVersionTag = "ALTER TABLE Repos ADD COLUMN CurrentVersionTag TEXT DEFAULT ''"
-	SQLAddCurrentVersionNum = "ALTER TABLE Repos ADD COLUMN CurrentVersionNum INTEGER DEFAULT 0"
+	SQLAddCurrentVersionTag = "ALTER TABLE Repo ADD COLUMN CurrentVersionTag TEXT DEFAULT ''"
+	SQLAddCurrentVersionNum = "ALTER TABLE Repo ADD COLUMN CurrentVersionNum INTEGER DEFAULT 0"
 )
 
 // SQL: version history operations.
@@ -31,10 +31,10 @@ const (
 		ToVersionTag, ToVersionNum, FlattenedPath, CreatedAt
 		FROM RepoVersionHistory WHERE RepoId = ? ORDER BY CreatedAt DESC`
 
-	SQLUpdateRepoVersion = `UPDATE Repos SET CurrentVersionTag = ?, CurrentVersionNum = ?,
-		UpdatedAt = CURRENT_TIMESTAMP WHERE Id = ?`
+	SQLUpdateRepoVersion = `UPDATE Repo SET CurrentVersionTag = ?, CurrentVersionNum = ?,
+		UpdatedAt = CURRENT_TIMESTAMP WHERE RepoId = ?`
 
-	SQLSelectRepoIDByPath = "SELECT Id FROM Repos WHERE AbsolutePath = ?"
+	SQLSelectRepoIDByPath = "SELECT RepoId FROM Repo WHERE AbsolutePath = ?"
 
 	SQLDropRepoVersionHistory = "DROP TABLE IF EXISTS RepoVersionHistory"
 )

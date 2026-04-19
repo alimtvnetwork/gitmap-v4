@@ -8,10 +8,10 @@ const SQLCreateProjectTypes = `CREATE TABLE IF NOT EXISTS ProjectTypes (
 	Description TEXT DEFAULT ''
 )`
 
-// SQL: create DetectedProjects table.
+// SQL: create DetectedProjects table. FK now references v15 Repo(RepoId).
 const SQLCreateDetectedProjects = `CREATE TABLE IF NOT EXISTS DetectedProjects (
 	Id               INTEGER PRIMARY KEY AUTOINCREMENT,
-	RepoId           INTEGER NOT NULL REFERENCES Repos(Id) ON DELETE CASCADE,
+	RepoId           INTEGER NOT NULL REFERENCES Repo(RepoId) ON DELETE CASCADE,
 	ProjectTypeId    INTEGER NOT NULL REFERENCES ProjectTypes(Id),
 	ProjectName      TEXT NOT NULL,
 	AbsolutePath     TEXT NOT NULL,
@@ -153,13 +153,13 @@ const SQLSelectDetectedProjectID = `SELECT Id
 	FROM DetectedProjects
 	WHERE RepoId = ? AND ProjectTypeId = ? AND RelativePath = ?`
 
-// SQL: query projects by type key.
+// SQL: query projects by type key (v15: JOIN Repo on RepoId).
 const SQLSelectProjectsByTypeKey = `SELECT dp.Id, dp.RepoId, pt.Key, dp.ProjectName,
 	dp.AbsolutePath, dp.RepoPath, dp.RelativePath,
 	dp.PrimaryIndicator, dp.DetectedAt, r.RepoName
 	FROM DetectedProjects dp
 	JOIN ProjectTypes pt ON dp.ProjectTypeId = pt.Id
-	JOIN Repos r ON dp.RepoId = r.Id
+	JOIN Repo r ON dp.RepoId = r.RepoId
 	WHERE pt.Key = ?
 	ORDER BY r.RepoName, dp.RelativePath`
 
