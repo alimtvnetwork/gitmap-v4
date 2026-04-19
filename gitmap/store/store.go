@@ -223,13 +223,18 @@ func (db *DB) migratePendingTaskColumns() {
 	db.addColumnIfNotExists(constants.SQLMigrateCompletedCmdArgs)
 }
 
-// Reset drops all tables and recreates them for a fresh start.
+// Reset drops all tables and recreates them for a fresh start. Lists v15
+// singular drops first, followed by legacy plural drops (which are safe
+// no-ops when the table does not exist) so installations at any migration
+// state can be reset cleanly.
 func (db *DB) Reset() error {
 	drops := []string{
+		// Children first (FK order).
 		constants.SQLDropCompletedTask,
 		constants.SQLDropPendingTask,
 		constants.SQLDropTaskType,
-		constants.SQLDropSettings,
+		constants.SQLDropSetting,
+		constants.SQLDropSettings, // legacy
 		constants.SQLDropGoRunnableFiles,
 		constants.SQLDropGoProjectMetadata,
 		constants.SQLDropCSharpKeyFiles,
@@ -238,20 +243,30 @@ func (db *DB) Reset() error {
 		constants.SQLDropDetectedProjects,
 		constants.SQLDropProjectTypes,
 		constants.SQLDropGroupRepo,
-		constants.SQLDropGroupRepos, // legacy plural — safe even if absent
-		constants.SQLDropGroups,
-		constants.SQLDropReleases,
-		constants.SQLDropAmendments,
-		constants.SQLDropCommitTemplates,
+		constants.SQLDropGroupRepos, // legacy
+		constants.SQLDropGroup,
+		constants.SQLDropGroups, // legacy
+		constants.SQLDropRelease,
+		constants.SQLDropReleases, // legacy
+		constants.SQLDropAmendment,
+		constants.SQLDropAmendments, // legacy
+		constants.SQLDropCommitTemplate,
+		constants.SQLDropCommitTemplates, // legacy
 		constants.SQLDropCommandHistory,
-		constants.SQLDropBookmarks,
-		constants.SQLDropAliases,
+		constants.SQLDropBookmark,
+		constants.SQLDropBookmarks, // legacy
+		constants.SQLDropAlias,
+		constants.SQLDropAliases, // legacy
 		constants.SQLDropZipGroupItems,
-		constants.SQLDropTempReleases,
+		constants.SQLDropTempRelease,
+		constants.SQLDropTempReleases, // legacy
 		constants.SQLDropZipGroups,
-		constants.SQLDropInstalledTools,
+		constants.SQLDropSshKey,
+		constants.SQLDropSSHKeys, // legacy
+		constants.SQLDropInstalledTool,
+		constants.SQLDropInstalledTools, // legacy
 		constants.SQLDropRepo,
-		constants.SQLDropRepos, // legacy plural — safe even if absent
+		constants.SQLDropRepos, // legacy
 	}
 
 	for _, stmt := range drops {

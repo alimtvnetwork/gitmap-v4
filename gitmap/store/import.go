@@ -60,8 +60,7 @@ func (db *DB) importGroups(groups []model.GroupExport) error {
 
 // importOneGroup creates a group and links its member repos.
 func (db *DB) importOneGroup(ge model.GroupExport) error {
-	_, err := db.conn.Exec(
-		"INSERT OR IGNORE INTO Groups (Name, Description, Color) VALUES (?, ?, ?)",
+	_, err := db.conn.Exec(constants.SQLImportInsertGroup,
 		ge.Name, ge.Description, ge.Color)
 	if err != nil {
 		return err
