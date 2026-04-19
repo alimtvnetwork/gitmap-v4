@@ -12,12 +12,14 @@ v15 DB schema: PascalCase + singular table names + `{TableName}Id` PKs + FKs mat
 Unified `.gitmap/` directory structure at repository root for all artifacts.
 Clone-next flattens by default (v2.75.0+): clones into base name folder, tracks versions in RepoVersionHistory.
 Completion generator uses marker-comment opt-in (v3.0.0+): `// gitmap:cmd top-level` on const block, `// gitmap:cmd skip` per spec. CI `generate-check` enforces drift.
-Current version: v3.7.0 (Phase 2.1+2.2 — ScanFolder + VersionProbe schema + `gitmap sf add/list/rm` commands).
+Current version: v3.8.0 (Phase 2.3 — hybrid HEAD-then-clone version probe + scan auto-tags repos with ScanFolderId).
 
 ## Memories
 - [v15 Rename Progress](mem://features/v15-rename-progress) — Phase 1 complete: all 22 tables singular + {Table}Id PKs + IsDraft/IsPreRelease + CSharp→Csharp (v3.5.0)
 - [Deploy Layout & Binary Readout](mem://features/deploy-layout-and-binary-readout) — Deploy folder is `gitmap-cli` (not `gitmap`). Bare `gitmap` prints Active/Deployed/Config triplet. PATH-detection reuses existing install location.
 - [Uninstall Quick Scripts](mem://features/uninstall-quick-scripts) — Root-level uninstall-quick.{ps1,sh} one-liners that delegate to `gitmap self-uninstall` with manual-sweep fallback. Cleans both `gitmap-cli/` and legacy `gitmap/`.
+- [Scan Folder & Version Probe Schema](mem://features/scan-folder-and-version-probe) — ScanFolder + VersionProbe tables, `gitmap sf add/list/rm` (v3.7.0)
+- [Version Probe](mem://features/version-probe) — Hybrid `git ls-remote` → shallow clone fallback. `gitmap probe [path|--all]`. Scan auto-tags repos with ScanFolderId. (v3.8.0)
 - [Code Constraints](mem://style/code-constraints) — Strict rules for code style, structure, and pull requests
 - [Code Quality Process](mem://style/code-quality-improvement-process) — Architectural principles and resilience patterns
 - [README Branding](mem://style/readme-branding) — Strict layout and linking requirements for the project author section

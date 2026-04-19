@@ -80,6 +80,7 @@ const (
 	CmdSelfInstall           = "self-install"
 	CmdSelfUninstall         = "self-uninstall"
 	CmdSf                    = "sf"
+	CmdProbe                 = "probe"
 )
 
 // Clone shorthands.
