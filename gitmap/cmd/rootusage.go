@@ -82,6 +82,7 @@ func printGroupNavigation() {
 	fmt.Println(constants.HelpCD)
 	fmt.Println(constants.HelpGroup)
 	fmt.Println(constants.HelpMultiGroup)
+	fmt.Println(constants.HelpSf)
 	fmt.Println(constants.HelpAlias)
 	fmt.Println(constants.HelpDiffProfiles)
 }
