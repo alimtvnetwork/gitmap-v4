@@ -11,43 +11,46 @@ import (
 	"github.com/user/gitmap/cloner"
 	"github.com/user/gitmap/constants"
 	"github.com/user/gitmap/model"
+	"github.com/user/gitmap/store"
 	"github.com/user/gitmap/verbose"
 )
+
+// pullOptions holds parsed pull flags.
+type pullOptions struct {
+	slug          string
+	group         string
+	all           bool
+	verbose       bool
+	stopOnFail    bool
+	parallel      int
+	onlyAvailable bool
+}
 
 // runPull handles the "pull" subcommand.
 func runPull(args []string) {
 	checkHelp("pull", args)
 	requireOnline()
-	slug, groupName, all, verboseMode, stopOnFail := parsePullFlags(args)
-	if verboseMode {
+	opts := parsePullFlags(args)
+	if opts.verbose {
 		initVerboseLog()
 	}
-	records := resolvePullTargets(slug, groupName, all)
-
-	workDir, wdErr := os.Getwd()
-	if wdErr != nil {
-		fmt.Fprintf(os.Stderr, "  ⚠ Could not determine working directory: %v\n", wdErr)
-	}
-	cmdArgs := buildCommandArgs(append([]string{"pull"}, os.Args[2:]...))
-	targetPath := workDir
-	if len(records) == 1 {
-		targetPath = records[0].AbsolutePath
+	records := resolvePullTargets(opts.slug, opts.group, opts.all)
+	if opts.onlyAvailable {
+		records = filterByAvailableUpdates(records)
+		if len(records) == 0 {
+			fmt.Print(constants.MsgPullNoAvailable)
+			return
+		}
 	}
 
-	taskID, taskDB := createPendingTask(constants.TaskTypePull, targetPath, workDir, "pull", cmdArgs)
+	taskID, taskDB := beginPullTask(records)
 	if taskDB != nil {
 		defer taskDB.Close()
 	}
 
 	prog := cloner.NewBatchProgress(len(records), "Pull", false)
-	prog.SetStopOnFail(stopOnFail)
-	for _, rec := range records {
-		if prog.Stopped() {
-			break
-		}
-		prog.BeginItem(rec.RepoName)
-		pullOneRepoTracked(rec, prog)
-	}
+	prog.SetStopOnFail(opts.stopOnFail)
+	executePull(records, prog, opts)
 	prog.PrintSummary()
 	prog.PrintFailureReport()
 
@@ -59,21 +62,57 @@ func runPull(args []string) {
 	completePendingTask(taskDB, taskID)
 }
 
+// beginPullTask records the pending task entry for this pull batch.
+func beginPullTask(records []model.ScanRecord) (int64, *store.DB) {
+	workDir, wdErr := os.Getwd()
+	if wdErr != nil {
+		fmt.Fprintf(os.Stderr, "  ⚠ Could not determine working directory: %v\n", wdErr)
+	}
+	cmdArgs := buildCommandArgs(append([]string{"pull"}, os.Args[2:]...))
+	targetPath := workDir
+	if len(records) == 1 {
+		targetPath = records[0].AbsolutePath
+	}
+
+	return createPendingTask(constants.TaskTypePull, targetPath, workDir, "pull", cmdArgs)
+}
+
+// executePull dispatches to either the serial or parallel runner.
+func executePull(records []model.ScanRecord, prog *cloner.BatchProgress, opts pullOptions) {
+	if opts.parallel > 1 {
+		runPullParallel(records, prog, opts.parallel, opts.stopOnFail)
+		return
+	}
+	for _, rec := range records {
+		if prog.Stopped() {
+			break
+		}
+		prog.BeginItem(rec.RepoName)
+		pullOneRepoTracked(rec, prog)
+	}
+}
+
 // parsePullFlags parses flags for the pull command.
-func parsePullFlags(args []string) (slug, group string, all, verboseFlag, stopOnFail bool) {
+func parsePullFlags(args []string) pullOptions {
 	fs := flag.NewFlagSet(constants.CmdPull, flag.ExitOnError)
 	vFlag := fs.Bool("verbose", false, constants.FlagDescVerbose)
 	gFlag := fs.String("group", "", constants.FlagDescGroup)
 	fs.StringVar(gFlag, "g", "", constants.FlagDescGroup)
 	aFlag := fs.Bool("all", false, constants.FlagDescAll)
 	sFlag := fs.Bool(constants.FlagStopOnFail, false, constants.FlagDescStopOnFail)
+	pFlag := fs.Int("parallel", 1, constants.FlagDescPullParallel)
+	oFlag := fs.Bool("only-available", false, constants.FlagDescPullOnlyAvailable)
 	fs.Parse(args)
 
+	opts := pullOptions{
+		group: *gFlag, all: *aFlag, verbose: *vFlag, stopOnFail: *sFlag,
+		parallel: *pFlag, onlyAvailable: *oFlag,
+	}
 	if fs.NArg() > 0 {
-		slug = fs.Arg(0)
+		opts.slug = fs.Arg(0)
 	}
 
-	return slug, *gFlag, *aFlag, *vFlag, *sFlag
+	return opts
 }
 
 // initVerboseLog sets up verbose logging, warning on failure.
