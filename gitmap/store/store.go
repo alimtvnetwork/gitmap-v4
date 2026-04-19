@@ -99,6 +99,15 @@ func (db *DB) Migrate() error {
 		return fmt.Errorf(constants.ErrV15Phase3Migration, err)
 	}
 
+	// Phase 1.4 reads legacy ZipGroupItems columns + pre-Csharp table names,
+	// so run the column-shape migrations BEFORE the rebuild copies tables.
+	db.migrateZipGroupItemPaths()
+	db.migratePendingTaskColumns()
+
+	if err := db.migrateV15Phase4(); err != nil {
+		return fmt.Errorf(constants.ErrV15Phase4Migration, err)
+	}
+
 	statements := []string{
 		constants.SQLCreateRepo,
 		constants.SQLCreateAbsPathIndex,
@@ -109,17 +118,17 @@ func (db *DB) Migrate() error {
 		constants.SQLCreateAmendment,
 		constants.SQLCreateCommandHistory,
 		constants.SQLCreateBookmark,
-		constants.SQLCreateProjectTypes,
-		constants.SQLCreateDetectedProjects,
+		constants.SQLCreateProjectType,
+		constants.SQLCreateDetectedProject,
 		constants.SQLCreateGoProjectMetadata,
-		constants.SQLCreateGoRunnableFiles,
+		constants.SQLCreateGoRunnableFile,
 		constants.SQLCreateCsharpProjectMeta,
-		constants.SQLCreateCsharpProjectFiles,
-		constants.SQLCreateCsharpKeyFiles,
+		constants.SQLCreateCsharpProjectFile,
+		constants.SQLCreateCsharpKeyFile,
 		constants.SQLCreateSetting,
 		constants.SQLCreateAlias,
-		constants.SQLCreateZipGroups,
-		constants.SQLCreateZipGroupItems,
+		constants.SQLCreateZipGroup,
+		constants.SQLCreateZipGroupItem,
 		constants.SQLCreateSshKey,
 		constants.SQLCreateTempRelease,
 		constants.SQLCreateInstalledTool,
@@ -137,8 +146,6 @@ func (db *DB) Migrate() error {
 
 	db.migrateSourceColumn()
 	db.migrateNotesColumn()
-	db.migrateZipGroupItemPaths()
-	db.migratePendingTaskColumns()
 	db.migrateRepoVersionColumns()
 
 	if err := db.SeedProjectTypes(); err != nil {
@@ -251,19 +258,25 @@ func (db *DB) migratePendingTaskColumns() {
 // state can be reset cleanly.
 func (db *DB) Reset() error {
 	drops := []string{
-		// Children first (FK order).
+		// Children first (FK order). v15 names + legacy names retained as no-ops.
 		constants.SQLDropCompletedTask,
 		constants.SQLDropPendingTask,
 		constants.SQLDropTaskType,
 		constants.SQLDropSetting,
 		constants.SQLDropSettings, // legacy
-		constants.SQLDropGoRunnableFiles,
+		constants.SQLDropGoRunnableFile,
+		constants.SQLDropGoRunnableFiles, // legacy
 		constants.SQLDropGoProjectMetadata,
-		constants.SQLDropCsharpKeyFiles,
-		constants.SQLDropCsharpProjectFiles,
+		constants.SQLDropCsharpKeyFile,
+		constants.SQLDropCsharpKeyFiles, // legacy (pre-Csharp + plural)
+		constants.SQLDropCsharpProjectFile,
+		constants.SQLDropCsharpProjectFiles, // legacy
 		constants.SQLDropCsharpProjectMeta,
-		constants.SQLDropDetectedProjects,
-		constants.SQLDropProjectTypes,
+		constants.SQLDropCsharpProjectMetaLegacy, // legacy (pre-Csharp spelling)
+		constants.SQLDropDetectedProject,
+		constants.SQLDropDetectedProjects, // legacy
+		constants.SQLDropProjectType,
+		constants.SQLDropProjectTypes, // legacy
 		constants.SQLDropGroupRepo,
 		constants.SQLDropGroupRepos, // legacy
 		constants.SQLDropGroup,
@@ -279,14 +292,17 @@ func (db *DB) Reset() error {
 		constants.SQLDropBookmarks, // legacy
 		constants.SQLDropAlias,
 		constants.SQLDropAliases, // legacy
-		constants.SQLDropZipGroupItems,
+		constants.SQLDropZipGroupItem,
+		constants.SQLDropZipGroupItems, // legacy
+		constants.SQLDropZipGroup,
+		constants.SQLDropZipGroups, // legacy
 		constants.SQLDropTempRelease,
 		constants.SQLDropTempReleases, // legacy
-		constants.SQLDropZipGroups,
 		constants.SQLDropSshKey,
 		constants.SQLDropSSHKeys, // legacy
 		constants.SQLDropInstalledTool,
 		constants.SQLDropInstalledTools, // legacy
+		constants.SQLDropRepoVersionHistory,
 		constants.SQLDropRepo,
 		constants.SQLDropRepos, // legacy
 	}

@@ -60,14 +60,22 @@ func (db *DB) hasLegacyTextID(table string) bool {
 }
 
 // dropProjectTables removes all project detection tables (FK to Repos).
+// Includes both v15 singular and legacy plural / pre-Csharp names so any
+// installation state can be cleaned before the legacy ID rebuild.
 func (db *DB) dropProjectTables() {
 	drops := []string{
+		constants.SQLDropGoRunnableFile,
 		constants.SQLDropGoRunnableFiles,
 		constants.SQLDropGoProjectMetadata,
+		constants.SQLDropCsharpKeyFile,
 		constants.SQLDropCsharpKeyFiles,
+		constants.SQLDropCsharpProjectFile,
 		constants.SQLDropCsharpProjectFiles,
 		constants.SQLDropCsharpProjectMeta,
+		constants.SQLDropCsharpProjectMetaLegacy,
+		constants.SQLDropDetectedProject,
 		constants.SQLDropDetectedProjects,
+		constants.SQLDropProjectType,
 		constants.SQLDropProjectTypes,
 	}
 
