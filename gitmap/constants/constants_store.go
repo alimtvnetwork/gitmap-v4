@@ -13,7 +13,7 @@ const (
 	ErrLockHeld        = "another gitmap process is running (PID %d).\n  If incorrect, delete: %s"
 )
 
-// Table names (v15: PascalCase + singular).
+// Table names (v15: PascalCase + singular + {Table}Id PK).
 const (
 	TableRepo      = "Repo"
 	TableGroup     = "Group"
@@ -45,25 +45,26 @@ const SQLCreateRepo = `CREATE TABLE IF NOT EXISTS Repo (
 	UpdatedAt        TEXT DEFAULT CURRENT_TIMESTAMP
 )`
 
-// SQL: create Groups table (legacy plural — renamed in Phase 1.2).
-const SQLCreateGroups = `CREATE TABLE IF NOT EXISTS Groups (
-	Id          INTEGER PRIMARY KEY AUTOINCREMENT,
+// SQL: create Group table (v15 singular). "Group" is a SQL reserved word so
+// it MUST be double-quoted everywhere it appears in DDL/DML.
+const SQLCreateGroup = `CREATE TABLE IF NOT EXISTS "Group" (
+	GroupId     INTEGER PRIMARY KEY AUTOINCREMENT,
 	Name        TEXT NOT NULL UNIQUE,
 	Description TEXT DEFAULT '',
 	Color       TEXT DEFAULT '',
 	CreatedAt   TEXT DEFAULT CURRENT_TIMESTAMP
 )`
 
-// SQL: create GroupRepo join table (v15: singular). RepoId FK now points to Repo(RepoId).
+// SQL: create GroupRepo join table (v15: singular). FKs reference v15 PKs.
 const SQLCreateGroupRepo = `CREATE TABLE IF NOT EXISTS GroupRepo (
-	GroupId INTEGER NOT NULL REFERENCES Groups(Id) ON DELETE CASCADE,
+	GroupId INTEGER NOT NULL REFERENCES "Group"(GroupId) ON DELETE CASCADE,
 	RepoId  INTEGER NOT NULL REFERENCES Repo(RepoId) ON DELETE CASCADE,
 	PRIMARY KEY (GroupId, RepoId)
 )`
 
-// SQL: create Releases table (legacy plural — renamed in Phase 1.2).
-const SQLCreateReleases = `CREATE TABLE IF NOT EXISTS Releases (
-	Id           INTEGER PRIMARY KEY AUTOINCREMENT,
+// SQL: create Release table (v15: singular + ReleaseId PK).
+const SQLCreateRelease = `CREATE TABLE IF NOT EXISTS Release (
+	ReleaseId    INTEGER PRIMARY KEY AUTOINCREMENT,
 	Version      TEXT NOT NULL,
 	Tag          TEXT NOT NULL UNIQUE,
 	Branch       TEXT NOT NULL,
@@ -78,8 +79,8 @@ const SQLCreateReleases = `CREATE TABLE IF NOT EXISTS Releases (
 	CreatedAt    TEXT DEFAULT CURRENT_TIMESTAMP
 )`
 
-// SQL: add Source column to existing Releases table.
-const SQLAddSourceColumn = "ALTER TABLE Releases ADD COLUMN Source TEXT DEFAULT 'release'"
+// SQL: add Source column — v15: now targets singular Release table.
+const SQLAddSourceColumn = "ALTER TABLE Release ADD COLUMN Source TEXT DEFAULT 'release'"
 
 // SQL: enable foreign keys.
 const SQLEnableFK = "PRAGMA foreign_keys = ON"
@@ -114,15 +115,15 @@ const SQLCreateAbsPathIndex = "CREATE UNIQUE INDEX IF NOT EXISTS IdxRepo_Absolut
 // SQL: drop the legacy index name from pre-v15 installs.
 const SQLDropLegacyAbsPathIndex = "DROP INDEX IF EXISTS idx_Repos_AbsolutePath"
 
-// SQL: group operations (still on legacy Groups table — renamed in Phase 1.2).
+// SQL: group operations (v15: "Group" singular, GroupId PK).
 const (
-	SQLInsertGroup = "INSERT INTO Groups (Name, Description, Color) VALUES (?, ?, ?)"
+	SQLInsertGroup = `INSERT INTO "Group" (Name, Description, Color) VALUES (?, ?, ?)`
 
-	SQLSelectAllGroups = "SELECT Id, Name, Description, Color, CreatedAt FROM Groups ORDER BY Name"
+	SQLSelectAllGroups = `SELECT GroupId, Name, Description, Color, CreatedAt FROM "Group" ORDER BY Name`
 
-	SQLSelectGroupByName = "SELECT Id, Name, Description, Color, CreatedAt FROM Groups WHERE Name = ?"
+	SQLSelectGroupByName = `SELECT GroupId, Name, Description, Color, CreatedAt FROM "Group" WHERE Name = ?`
 
-	SQLDeleteGroup = "DELETE FROM Groups WHERE Name = ?"
+	SQLDeleteGroup = `DELETE FROM "Group" WHERE Name = ?`
 
 	SQLInsertGroupRepo = "INSERT OR IGNORE INTO GroupRepo (GroupId, RepoId) VALUES (?, ?)"
 
@@ -135,34 +136,39 @@ const (
 	SQLCountGroupRepos = "SELECT COUNT(*) FROM GroupRepo WHERE GroupId = ?"
 )
 
-// SQL: release operations (still on legacy Releases table — renamed in Phase 1.2).
+// SQL: import-side group insert (used by store/import.go to insert without conflict).
+const SQLImportInsertGroup = `INSERT OR IGNORE INTO "Group" (Name, Description, Color) VALUES (?, ?, ?)`
+
+// SQL: release operations (v15: Release singular, ReleaseId PK).
 const (
-	SQLUpsertRelease = `INSERT INTO Releases (Version, Tag, Branch, SourceBranch, CommitSha, Changelog, Notes, Draft, PreRelease, IsLatest, Source, CreatedAt)
+	SQLUpsertRelease = `INSERT INTO Release (Version, Tag, Branch, SourceBranch, CommitSha, Changelog, Notes, Draft, PreRelease, IsLatest, Source, CreatedAt)
 		VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
 		ON CONFLICT(Tag) DO UPDATE SET
 			Version=excluded.Version, Branch=excluded.Branch, SourceBranch=excluded.SourceBranch,
 			CommitSha=excluded.CommitSha, Changelog=excluded.Changelog, Notes=excluded.Notes, Draft=excluded.Draft,
 			PreRelease=excluded.PreRelease, IsLatest=excluded.IsLatest, Source=excluded.Source`
 
-	SQLSelectAllReleases = `SELECT Id, Version, Tag, Branch, SourceBranch, CommitSha, Changelog, Notes, Draft, PreRelease, IsLatest, Source, CreatedAt
-		FROM Releases ORDER BY CreatedAt DESC`
+	SQLSelectAllReleases = `SELECT ReleaseId, Version, Tag, Branch, SourceBranch, CommitSha, Changelog, Notes, Draft, PreRelease, IsLatest, Source, CreatedAt
+		FROM Release ORDER BY CreatedAt DESC`
 
-	SQLSelectReleaseByTag = `SELECT Id, Version, Tag, Branch, SourceBranch, CommitSha, Changelog, Notes, Draft, PreRelease, IsLatest, Source, CreatedAt
-		FROM Releases WHERE Tag = ?`
+	SQLSelectReleaseByTag = `SELECT ReleaseId, Version, Tag, Branch, SourceBranch, CommitSha, Changelog, Notes, Draft, PreRelease, IsLatest, Source, CreatedAt
+		FROM Release WHERE Tag = ?`
 
-	SQLClearLatestRelease = "UPDATE Releases SET IsLatest = 0 WHERE IsLatest = 1"
+	SQLClearLatestRelease = "UPDATE Release SET IsLatest = 0 WHERE IsLatest = 1"
 
-	SQLAddNotesColumn = "ALTER TABLE Releases ADD COLUMN Notes TEXT DEFAULT ''"
+	SQLAddNotesColumn = "ALTER TABLE Release ADD COLUMN Notes TEXT DEFAULT ''"
 )
 
-// SQL: reset operations.
+// SQL: reset operations (v15 names + legacy plurals kept for safe drop on upgraded DBs).
 const (
 	SQLDropGroupRepo  = "DROP TABLE IF EXISTS GroupRepo"
 	SQLDropGroupRepos = "DROP TABLE IF EXISTS GroupRepos" // legacy
-	SQLDropGroups     = "DROP TABLE IF EXISTS Groups"
+	SQLDropGroup      = `DROP TABLE IF EXISTS "Group"`
+	SQLDropGroups     = "DROP TABLE IF EXISTS Groups" // legacy
 	SQLDropRepo       = "DROP TABLE IF EXISTS Repo"
 	SQLDropRepos      = "DROP TABLE IF EXISTS Repos" // legacy, kept for migrateLegacyIDs
-	SQLDropReleases   = "DROP TABLE IF EXISTS Releases"
+	SQLDropRelease    = "DROP TABLE IF EXISTS Release"
+	SQLDropReleases   = "DROP TABLE IF EXISTS Releases" // legacy
 )
 
 // Store error messages.
@@ -190,4 +196,6 @@ const (
 	MsgV15RepoMigrationDone  = "✓ Migrated Repos → Repo (RepoId PK). Existing data preserved."
 	ErrV15RepoMigration      = "v15 Repo migration failed: %v"
 	ErrV15RepoCountMismatch  = "v15 Repo migration count mismatch: old=%d new=%d"
+	ErrV15Phase2Migration    = "v15 Phase 1.2 migration failed: %v"
+	ErrV15Phase3Migration    = "v15 Phase 1.3 migration failed: %v"
 )
