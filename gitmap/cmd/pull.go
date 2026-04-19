@@ -11,6 +11,7 @@ import (
 	"github.com/user/gitmap/cloner"
 	"github.com/user/gitmap/constants"
 	"github.com/user/gitmap/model"
+	"github.com/user/gitmap/store"
 	"github.com/user/gitmap/verbose"
 )
 
@@ -62,7 +63,7 @@ func runPull(args []string) {
 }
 
 // beginPullTask records the pending task entry for this pull batch.
-func beginPullTask(records []model.ScanRecord) (string, interface{ Close() error }) {
+func beginPullTask(records []model.ScanRecord) (int64, *store.DB) {
 	workDir, wdErr := os.Getwd()
 	if wdErr != nil {
 		fmt.Fprintf(os.Stderr, "  ⚠ Could not determine working directory: %v\n", wdErr)
