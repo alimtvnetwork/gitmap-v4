@@ -1,33 +1,40 @@
 package constants
 
-// Bookmark table name.
-const TableBookmarks = "Bookmarks"
+// Bookmark table name (v15: singular).
+const TableBookmark = "Bookmark"
 
-// SQL: create Bookmarks table.
-const SQLCreateBookmarks = `CREATE TABLE IF NOT EXISTS Bookmarks (
-	Id        INTEGER PRIMARY KEY AUTOINCREMENT,
-	Name      TEXT NOT NULL UNIQUE,
-	Command   TEXT NOT NULL,
-	Args      TEXT DEFAULT '',
-	Flags     TEXT DEFAULT '',
-	CreatedAt TEXT DEFAULT CURRENT_TIMESTAMP
+// Legacy bookmark table name (for migration detection only).
+const LegacyTableBookmarks = "Bookmarks"
+
+// SQL: create Bookmark table (v15: singular + BookmarkId PK).
+const SQLCreateBookmark = `CREATE TABLE IF NOT EXISTS Bookmark (
+	BookmarkId INTEGER PRIMARY KEY AUTOINCREMENT,
+	Name       TEXT NOT NULL UNIQUE,
+	Command    TEXT NOT NULL,
+	Args       TEXT DEFAULT '',
+	Flags      TEXT DEFAULT '',
+	CreatedAt  TEXT DEFAULT CURRENT_TIMESTAMP
 )`
 
-// SQL: bookmark operations.
+// SQL: bookmark operations (v15: Bookmark table, BookmarkId PK).
 const (
-	SQLInsertBookmark = `INSERT INTO Bookmarks (Name, Command, Args, Flags)
+	SQLInsertBookmark = `INSERT INTO Bookmark (Name, Command, Args, Flags)
 		VALUES (?, ?, ?, ?)`
 
-	SQLSelectAllBookmarks = `SELECT Id, Name, Command, Args, Flags, CreatedAt
-		FROM Bookmarks ORDER BY Name`
+	SQLSelectAllBookmarks = `SELECT BookmarkId, Name, Command, Args, Flags, CreatedAt
+		FROM Bookmark ORDER BY Name`
 
-	SQLSelectBookmarkByName = `SELECT Id, Name, Command, Args, Flags, CreatedAt
-		FROM Bookmarks WHERE Name = ?`
+	SQLSelectBookmarkByName = `SELECT BookmarkId, Name, Command, Args, Flags, CreatedAt
+		FROM Bookmark WHERE Name = ?`
 
-	SQLDeleteBookmark = "DELETE FROM Bookmarks WHERE Name = ?"
+	SQLDeleteBookmark = "DELETE FROM Bookmark WHERE Name = ?"
 
-	SQLDropBookmarks = "DROP TABLE IF EXISTS Bookmarks"
+	SQLDropBookmark  = "DROP TABLE IF EXISTS Bookmark"
+	SQLDropBookmarks = "DROP TABLE IF EXISTS Bookmarks" // legacy
 )
+
+// SQL: import-side bookmark insert (v15-aware "INSERT OR IGNORE" for import.go).
+const SQLImportInsertBookmark = `INSERT OR IGNORE INTO Bookmark (Name, Command, Args, Flags) VALUES (?, ?, ?, ?)`
 
 // gitmap:cmd top-level
 // Bookmark CLI commands.

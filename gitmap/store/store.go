@@ -80,16 +80,20 @@ func (db *DB) Migrate() error {
 		return fmt.Errorf(constants.ErrV15RepoMigration, err)
 	}
 
+	if err := db.migrateV15Phase2(); err != nil {
+		return err
+	}
+
 	statements := []string{
 		constants.SQLCreateRepo,
 		constants.SQLCreateAbsPathIndex,
-		constants.SQLCreateGroups,
+		constants.SQLCreateGroup,
 		constants.SQLCreateGroupRepo,
-		constants.SQLCreateReleases,
+		constants.SQLCreateRelease,
 		constants.SQLCreateCommitTemplates,
 		constants.SQLCreateAmendments,
 		constants.SQLCreateCommandHistory,
-		constants.SQLCreateBookmarks,
+		// Bookmark moved below to keep the v15 group together.
 		constants.SQLCreateProjectTypes,
 		constants.SQLCreateDetectedProjects,
 		constants.SQLCreateGoProjectMetadata,
@@ -98,9 +102,10 @@ func (db *DB) Migrate() error {
 		constants.SQLCreateCSharpProjectFiles,
 		constants.SQLCreateCSharpKeyFiles,
 		constants.SQLCreateSettings,
-		constants.SQLCreateAliases,
+		constants.SQLCreateAlias,
 		constants.SQLCreateZipGroups,
 		constants.SQLCreateZipGroupItems,
+		constants.SQLCreateBookmark,
 		constants.SQLCreateSSHKeys,
 		constants.SQLCreateTempReleases,
 		constants.SQLCreateInstalledTools,
@@ -226,13 +231,17 @@ func (db *DB) Reset() error {
 		constants.SQLDropProjectTypes,
 		constants.SQLDropGroupRepo,
 		constants.SQLDropGroupRepos, // legacy plural — safe even if absent
-		constants.SQLDropGroups,
-		constants.SQLDropReleases,
+		constants.SQLDropGroup,
+		constants.SQLDropGroups, // legacy plural — safe even if absent
+		constants.SQLDropRelease,
+		constants.SQLDropReleases, // legacy plural — safe even if absent
 		constants.SQLDropAmendments,
 		constants.SQLDropCommitTemplates,
 		constants.SQLDropCommandHistory,
-		constants.SQLDropBookmarks,
-		constants.SQLDropAliases,
+		constants.SQLDropBookmark,
+		constants.SQLDropBookmarks, // legacy plural — safe even if absent
+		constants.SQLDropAlias,
+		constants.SQLDropAliases, // legacy plural — safe even if absent
 		constants.SQLDropZipGroupItems,
 		constants.SQLDropTempReleases,
 		constants.SQLDropZipGroups,
