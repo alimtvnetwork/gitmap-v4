@@ -1,25 +1,25 @@
 package constants
 
-// History table name.
+// History table name (v15: singular preserved; PK Id → CommandHistoryId).
 const TableCommandHistory = "CommandHistory"
 
-// SQL: create CommandHistory table.
+// SQL: create CommandHistory table (v15: CommandHistoryId PK).
 const SQLCreateCommandHistory = `CREATE TABLE IF NOT EXISTS CommandHistory (
-	Id          INTEGER PRIMARY KEY AUTOINCREMENT,
-	Command     TEXT NOT NULL,
-	Alias       TEXT DEFAULT '',
-	Args        TEXT DEFAULT '',
-	Flags       TEXT DEFAULT '',
-	StartedAt   TEXT NOT NULL,
-	FinishedAt  TEXT DEFAULT '',
-	DurationMs  INTEGER DEFAULT 0,
-	ExitCode    INTEGER DEFAULT 0,
-	Summary     TEXT DEFAULT '',
-	RepoCount   INTEGER DEFAULT 0,
-	CreatedAt   TEXT DEFAULT CURRENT_TIMESTAMP
+	CommandHistoryId INTEGER PRIMARY KEY AUTOINCREMENT,
+	Command          TEXT NOT NULL,
+	Alias            TEXT DEFAULT '',
+	Args             TEXT DEFAULT '',
+	Flags            TEXT DEFAULT '',
+	StartedAt        TEXT NOT NULL,
+	FinishedAt       TEXT DEFAULT '',
+	DurationMs       INTEGER DEFAULT 0,
+	ExitCode         INTEGER DEFAULT 0,
+	Summary          TEXT DEFAULT '',
+	RepoCount        INTEGER DEFAULT 0,
+	CreatedAt        TEXT DEFAULT CURRENT_TIMESTAMP
 )`
 
-// SQL: command history operations.
+// SQL: command history operations (v15: CommandHistoryId PK).
 const (
 	SQLInsertHistory = `INSERT INTO CommandHistory
 		(Command, Alias, Args, Flags, StartedAt, FinishedAt, DurationMs, ExitCode, Summary, RepoCount)
@@ -27,13 +27,13 @@ const (
 
 	SQLUpdateHistory = `UPDATE CommandHistory
 		SET FinishedAt = ?, DurationMs = ?, ExitCode = ?, Summary = ?, RepoCount = ?
-		WHERE Id = ?`
+		WHERE CommandHistoryId = ?`
 
-	SQLSelectAllHistory = `SELECT Id, Command, Alias, Args, Flags, StartedAt, FinishedAt,
+	SQLSelectAllHistory = `SELECT CommandHistoryId, Command, Alias, Args, Flags, StartedAt, FinishedAt,
 		DurationMs, ExitCode, Summary, RepoCount, CreatedAt
 		FROM CommandHistory ORDER BY CreatedAt DESC`
 
-	SQLSelectHistoryByCommand = `SELECT Id, Command, Alias, Args, Flags, StartedAt, FinishedAt,
+	SQLSelectHistoryByCommand = `SELECT CommandHistoryId, Command, Alias, Args, Flags, StartedAt, FinishedAt,
 		DurationMs, ExitCode, Summary, RepoCount, CreatedAt
 		FROM CommandHistory WHERE Command = ? ORDER BY CreatedAt DESC`
 
