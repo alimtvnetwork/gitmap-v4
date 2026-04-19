@@ -22,21 +22,45 @@ const HomePage = () => {
           re-clone the exact layout on any machine. Track, group, release, and
           manage repositories from a single CLI.
         </p>
-        <div className="mb-8 max-w-3xl mx-auto">
-          <InstallBlock
-            tabs={[
-              {
-                label: "Windows",
-                command:
-                  "irm https://raw.githubusercontent.com/alimtvnetwork/gitmap-v3/main/install-quick.ps1 | iex",
-              },
-              {
-                label: "Linux / macOS",
-                command:
-                  "curl -fsSL https://raw.githubusercontent.com/alimtvnetwork/gitmap-v3/main/install-quick.sh | bash",
-              },
-            ]}
-          />
+        <div className="mb-8 max-w-3xl mx-auto space-y-6">
+          <div className="space-y-2">
+            <p className="text-xs font-mono uppercase tracking-wider text-muted-foreground">
+              Install — Quick
+            </p>
+            <InstallBlock
+              tabs={[
+                {
+                  label: "Windows",
+                  command:
+                    "irm https://raw.githubusercontent.com/alimtvnetwork/gitmap-v3/main/install-quick.ps1 | iex",
+                },
+                {
+                  label: "Linux / macOS",
+                  command:
+                    "curl -fsSL https://raw.githubusercontent.com/alimtvnetwork/gitmap-v3/main/install-quick.sh | bash",
+                },
+              ]}
+            />
+          </div>
+          <div className="space-y-2">
+            <p className="text-xs font-mono uppercase tracking-wider text-muted-foreground">
+              Uninstall — Quick
+            </p>
+            <InstallBlock
+              tabs={[
+                {
+                  label: "Windows",
+                  command:
+                    "irm https://raw.githubusercontent.com/alimtvnetwork/gitmap-v3/main/uninstall-quick.ps1 | iex",
+                },
+                {
+                  label: "Linux / macOS",
+                  command:
+                    "curl -fsSL https://raw.githubusercontent.com/alimtvnetwork/gitmap-v3/main/uninstall-quick.sh | bash",
+                },
+              ]}
+            />
+          </div>
         </div>
         <div className="flex gap-4 justify-center">
           <Link
