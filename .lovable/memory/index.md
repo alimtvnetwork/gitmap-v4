@@ -16,6 +16,7 @@ Current version: v3.5.0 (Phase 1 v15 rename complete — all 22 tables migrated)
 
 ## Memories
 - [v15 Rename Progress](mem://features/v15-rename-progress) — Phase 1 complete: all 22 tables singular + {Table}Id PKs + IsDraft/IsPreRelease + CSharp→Csharp (v3.5.0)
+- [Deploy Layout & Binary Readout](mem://features/deploy-layout-and-binary-readout) — Deploy folder is `gitmap-cli` (not `gitmap`). Bare `gitmap` prints Active/Deployed/Config triplet. PATH-detection reuses existing install location.
 - [Code Constraints](mem://style/code-constraints) — Strict rules for code style, structure, and pull requests
 - [Code Quality Process](mem://style/code-quality-improvement-process) — Architectural principles and resilience patterns
 - [README Branding](mem://style/readme-branding) — Strict layout and linking requirements for the project author section
