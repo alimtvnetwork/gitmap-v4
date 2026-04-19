@@ -49,6 +49,7 @@ const (
 	CmdGroupShow             = "show" // gitmap:cmd skip
 	CmdGroupDelete           = "delete" // gitmap:cmd skip
 	CmdDBReset               = "db-reset"
+	CmdReset                 = "reset"
 	CmdListVersions          = "list-versions"
 	CmdListVersionsAlias     = "lv"
 	CmdRevert                = "revert"

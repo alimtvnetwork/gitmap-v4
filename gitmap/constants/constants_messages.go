@@ -135,6 +135,12 @@ const (
 	MsgDBResetDone      = "Database reset: all repos and groups cleared.\n"
 	ErrDBResetFailed    = "Error: database reset failed: %v\n"
 	ErrDBResetNoConfirm = "Error: this will delete all tracked repos and groups.\nRun with --confirm to proceed: gitmap db-reset --confirm"
+	MsgResetFileRemoved = "Removed database file: %s\n"
+	MsgResetReseeded    = "Reseeded %s\n"
+	MsgResetDone        = "Reset complete: database file deleted, schema rebuilt, seeds reapplied.\n"
+	ErrResetNoConfirm   = "Error: this will permanently delete the database file and rebuild it from scratch.\nRun with --confirm to proceed: gitmap reset --confirm"
+	ErrResetRemoveFile  = "Error: could not delete database file %s: %v\n"
+	ErrResetReinit      = "Error: could not reinitialize database: %v\n"
 )
 
 // Latest-branch error messages.
