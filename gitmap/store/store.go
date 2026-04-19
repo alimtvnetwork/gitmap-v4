@@ -80,12 +80,16 @@ func (db *DB) Migrate() error {
 		return fmt.Errorf(constants.ErrV15RepoMigration, err)
 	}
 
+	if err := db.migrateV15Phase2(); err != nil {
+		return err
+	}
+
 	statements := []string{
 		constants.SQLCreateRepo,
 		constants.SQLCreateAbsPathIndex,
-		constants.SQLCreateGroups,
+		constants.SQLCreateGroup,
 		constants.SQLCreateGroupRepo,
-		constants.SQLCreateReleases,
+		constants.SQLCreateRelease,
 		constants.SQLCreateCommitTemplates,
 		constants.SQLCreateAmendments,
 		constants.SQLCreateCommandHistory,
@@ -98,9 +102,10 @@ func (db *DB) Migrate() error {
 		constants.SQLCreateCSharpProjectFiles,
 		constants.SQLCreateCSharpKeyFiles,
 		constants.SQLCreateSettings,
-		constants.SQLCreateAliases,
+		constants.SQLCreateAlias,
 		constants.SQLCreateZipGroups,
 		constants.SQLCreateZipGroupItems,
+		constants.SQLCreateBookmark,
 		constants.SQLCreateSSHKeys,
 		constants.SQLCreateTempReleases,
 		constants.SQLCreateInstalledTools,
