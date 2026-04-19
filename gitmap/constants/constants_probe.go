@@ -59,5 +59,6 @@ const (
 
 // VersionProbe CLI tokens.
 const (
-	ProbeFlagAll = "--all"
+	ProbeFlagAll  = "--all"
+	ProbeFlagJSON = "--json"
 )

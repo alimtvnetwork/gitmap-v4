@@ -8,6 +8,7 @@ Run the hybrid HEAD-then-clone version probe against one or every repo.
 gitmap probe                   # probe every repo in the database
 gitmap probe --all             # explicit form of the above
 gitmap probe <repo-path>       # probe a single repo by absolute path
+gitmap probe --all --json      # emit a JSON array (CI-friendly)
 ```
 
 ## What it does

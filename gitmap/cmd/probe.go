@@ -1,6 +1,7 @@
 package cmd
 
 import (
+	"encoding/json"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -11,26 +12,64 @@ import (
 	"github.com/user/gitmap/store"
 )
 
-// runProbe dispatches `gitmap probe [<repo-path>|--all]`. With no args or
-// `--all`, every repo in the database is probed sequentially. Phase 2.5
-// will replace this with a parallel worker pool.
+// probeJSONEntry is a single repo-level result emitted under `--json`.
+// Embeds the result + repo identity so a CI consumer can join on either.
+type probeJSONEntry struct {
+	RepoID         int64  `json:"repoId"`
+	Slug           string `json:"slug"`
+	AbsolutePath   string `json:"absolutePath"`
+	NextVersionTag string `json:"nextVersionTag"`
+	NextVersionNum int64  `json:"nextVersionNum"`
+	Method         string `json:"method"`
+	IsAvailable    bool   `json:"isAvailable"`
+	Error          string `json:"error,omitempty"`
+}
+
+// runProbe dispatches `gitmap probe [<repo-path>|--all] [--json]`. Phase 2.5
+// will replace the sequential loop with a parallel worker pool.
 func runProbe(args []string) {
 	checkHelp("probe", args)
+
+	jsonOut, positional := splitProbeArgs(args)
 
 	db := openSfDB()
 	defer db.Close()
 
-	targets, err := resolveProbeTargets(db, args)
+	targets, err := resolveProbeTargets(db, positional)
 	if err != nil {
 		fmt.Fprintln(os.Stderr, err.Error())
 		os.Exit(1)
 	}
 	if len(targets) == 0 {
-		fmt.Print(constants.MsgProbeNoTargets)
+		emitProbeEmpty(jsonOut)
 		return
 	}
 
-	probeAndReport(db, targets)
+	probeAndReport(db, targets, jsonOut)
+}
+
+// splitProbeArgs separates --json from positional args. Order-agnostic.
+func splitProbeArgs(args []string) (bool, []string) {
+	jsonOut := false
+	rest := make([]string, 0, len(args))
+	for _, a := range args {
+		if a == constants.ProbeFlagJSON {
+			jsonOut = true
+			continue
+		}
+		rest = append(rest, a)
+	}
+
+	return jsonOut, rest
+}
+
+// emitProbeEmpty handles the "no targets" case in either output mode.
+func emitProbeEmpty(jsonOut bool) {
+	if jsonOut {
+		fmt.Println("[]")
+		return
+	}
+	fmt.Print(constants.MsgProbeNoTargets)
 }
 
 // resolveProbeTargets converts CLI args into a list of repos to probe.
@@ -56,25 +95,72 @@ func resolveProbeTargets(db *store.DB, args []string) ([]model.ScanRecord, error
 }
 
 // probeAndReport executes RunOne for every target, persists results, and
-// prints a per-repo line plus a final summary.
-func probeAndReport(db *store.DB, targets []model.ScanRecord) {
-	fmt.Printf(constants.MsgProbeStartFmt, len(targets))
+// emits either the human summary or a JSON array depending on jsonOut.
+func probeAndReport(db *store.DB, targets []model.ScanRecord, jsonOut bool) {
+	if !jsonOut {
+		fmt.Printf(constants.MsgProbeStartFmt, len(targets))
+	}
 
+	entries, available, unchanged, failed := runProbeLoop(db, targets, jsonOut)
+
+	if jsonOut {
+		emitProbeJSON(entries)
+		return
+	}
+	fmt.Printf(constants.MsgProbeDoneFmt, available, unchanged, failed)
+}
+
+// runProbeLoop executes the probe per target and tallies counters. When
+// jsonOut is true the per-line summaries are suppressed and entries are
+// collected for a single JSON dump at the end.
+func runProbeLoop(db *store.DB, targets []model.ScanRecord, jsonOut bool) ([]probeJSONEntry, int, int, int) {
+	entries := make([]probeJSONEntry, 0, len(targets))
 	available, unchanged, failed := 0, 0, 0
+
 	for _, repo := range targets {
 		url := pickProbeURL(repo)
 		if url == "" {
-			fmt.Fprintf(os.Stderr, constants.ErrProbeMissingURL+"\n", repo.Slug)
+			result := probe.Result{Method: constants.ProbeMethodNone, Error: fmt.Sprintf(constants.ErrProbeMissingURL, repo.Slug)}
+			recordProbeResult(db, repo, result)
+			entries = append(entries, makeProbeEntry(repo, result))
+			if !jsonOut {
+				fmt.Fprintf(os.Stderr, result.Error+"\n")
+			}
 			failed++
 			continue
 		}
 
 		result := probe.RunOne(url)
 		recordProbeResult(db, repo, result)
-		available, unchanged, failed = tallyProbe(repo, result, available, unchanged, failed)
+		entries = append(entries, makeProbeEntry(repo, result))
+		available, unchanged, failed = tallyProbe(repo, result, available, unchanged, failed, jsonOut)
 	}
 
-	fmt.Printf(constants.MsgProbeDoneFmt, available, unchanged, failed)
+	return entries, available, unchanged, failed
+}
+
+// makeProbeEntry converts a probe.Result + repo into a JSON-friendly row.
+func makeProbeEntry(repo model.ScanRecord, r probe.Result) probeJSONEntry {
+	return probeJSONEntry{
+		RepoID:         repo.ID,
+		Slug:           repo.Slug,
+		AbsolutePath:   repo.AbsolutePath,
+		NextVersionTag: r.NextVersionTag,
+		NextVersionNum: r.NextVersionNum,
+		Method:         r.Method,
+		IsAvailable:    r.IsAvailable,
+		Error:          r.Error,
+	}
+}
+
+// emitProbeJSON dumps the collected entries as indented JSON to stdout.
+func emitProbeJSON(entries []probeJSONEntry) {
+	enc := json.NewEncoder(os.Stdout)
+	enc.SetIndent("", "  ")
+	if err := enc.Encode(entries); err != nil {
+		fmt.Fprintln(os.Stderr, err.Error())
+		os.Exit(1)
+	}
 }
 
 // pickProbeURL prefers HTTPS (less auth friction in CI), falls back to SSH.
@@ -93,17 +179,24 @@ func recordProbeResult(db *store.DB, repo model.ScanRecord, result probe.Result)
 	}
 }
 
-// tallyProbe prints the per-repo line and updates the running counters.
-func tallyProbe(repo model.ScanRecord, r probe.Result, ok, none, fail int) (int, int, int) {
+// tallyProbe updates the running counters and (unless jsonOut) prints the
+// per-repo summary line.
+func tallyProbe(repo model.ScanRecord, r probe.Result, ok, none, fail int, jsonOut bool) (int, int, int) {
 	if r.Error != "" {
-		fmt.Printf(constants.MsgProbeFailFmt, repo.Slug, r.Error)
+		if !jsonOut {
+			fmt.Printf(constants.MsgProbeFailFmt, repo.Slug, r.Error)
+		}
 		return ok, none, fail + 1
 	}
 	if r.IsAvailable {
-		fmt.Printf(constants.MsgProbeOkFmt, repo.Slug, r.NextVersionTag, r.Method)
+		if !jsonOut {
+			fmt.Printf(constants.MsgProbeOkFmt, repo.Slug, r.NextVersionTag, r.Method)
+		}
 		return ok + 1, none, fail
 	}
-	fmt.Printf(constants.MsgProbeNoneFmt, repo.Slug, r.Method)
+	if !jsonOut {
+		fmt.Printf(constants.MsgProbeNoneFmt, repo.Slug, r.Method)
+	}
 
 	return ok, none + 1, fail
 }
