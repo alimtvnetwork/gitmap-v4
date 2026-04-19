@@ -1,5 +1,10 @@
 # GitMap
 
+[![CI](https://github.com/alimtvnetwork/gitmap-v3/actions/workflows/ci.yml/badge.svg)](https://github.com/alimtvnetwork/gitmap-v3/actions/workflows/ci.yml)
+[![Go Report Card](https://goreportcard.com/badge/github.com/alimtvnetwork/gitmap-v3?style=flat-square)](https://goreportcard.com/report/github.com/alimtvnetwork/gitmap-v3)
+[![Go](https://img.shields.io/badge/Go-1.24+-00ADD8?style=flat-square&logo=go&logoColor=white)](https://go.dev)
+[![License: MIT](https://img.shields.io/badge/license-MIT-green?style=flat-square)](./LICENSE)
+
 > Scan directories for Git repositories, generate clone instructions, and re-clone them anywhere.
 
 ## Quick Start
@@ -325,3 +330,7 @@ gitmap profile delete personal
 ## Specs
 
 See [spec/01-app/](../spec/01-app/) for detailed specifications.
+
+## License
+
+Released under the [MIT License](./LICENSE). © 2026 Md. Alim Ul Karim.
