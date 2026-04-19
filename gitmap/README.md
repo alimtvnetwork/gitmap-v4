@@ -330,3 +330,7 @@ gitmap profile delete personal
 ## Specs
 
 See [spec/01-app/](../spec/01-app/) for detailed specifications.
+
+## License
+
+Released under the [MIT License](./LICENSE). © 2026 Md. Alim Ul Karim.
