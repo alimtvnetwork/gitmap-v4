@@ -60,6 +60,11 @@ const HomePage = () => {
                 },
               ]}
             />
+            <p className="text-xs text-muted-foreground font-sans leading-relaxed max-w-2xl mx-auto">
+              Removes the <code className="font-mono text-foreground">gitmap</code> binary and its PATH entries, then prompts before deleting your data folder
+              (<code className="font-mono text-foreground">%APPDATA%\gitmap</code> on Windows, <code className="font-mono text-foreground">~/.config/gitmap</code> on Linux/macOS).
+              Pass <code className="font-mono text-foreground">--keep-data</code> to always keep it, or <code className="font-mono text-foreground">-y</code>/<code className="font-mono text-foreground">--yes</code> to skip the prompt.
+            </p>
           </div>
         </div>
         <div className="flex gap-4 justify-center">
