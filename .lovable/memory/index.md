@@ -21,6 +21,7 @@ Current version: v3.10.0 (Phase 2.5 — `gitmap pull --parallel <N>` worker pool
 - [Scan Folder & Version Probe Schema](mem://features/scan-folder-and-version-probe) — ScanFolder + VersionProbe tables, `gitmap sf add/list/rm` (v3.7.0)
 - [Version Probe](mem://features/version-probe) — Hybrid `git ls-remote` → shallow clone fallback. `gitmap probe [path|--all]`. Scan auto-tags repos with ScanFolderId. (v3.8.0)
 - [Find-Next](mem://features/find-next) — `gitmap find-next` / `fn` reads latest VersionProbe rows where IsAvailable=1. `--scan-folder <id>` filter, `--json` output. Read-only. (v3.9.0)
+- [Parallel Pull](mem://features/parallel-pull) — `gitmap pull --parallel <N>` worker pool with mutex-guarded BatchProgress. `--only-available` intersects targets via FindNext (fail-open). (v3.10.0)
 - [Code Constraints](mem://style/code-constraints) — Strict rules for code style, structure, and pull requests
 - [Code Quality Process](mem://style/code-quality-improvement-process) — Architectural principles and resilience patterns
 - [README Branding](mem://style/readme-branding) — Strict layout and linking requirements for the project author section
