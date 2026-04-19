@@ -108,6 +108,10 @@ func (db *DB) Migrate() error {
 		return fmt.Errorf(constants.ErrV15Phase4Migration, err)
 	}
 
+	if err := db.migrateV15Phase5(); err != nil {
+		return fmt.Errorf(constants.ErrV15Phase5Migration, err)
+	}
+
 	statements := []string{
 		constants.SQLCreateRepo,
 		constants.SQLCreateAbsPathIndex,

@@ -199,4 +199,5 @@ const (
 	ErrV15Phase2Migration    = "v15 Phase 1.2 migration failed: %v"
 	ErrV15Phase3Migration    = "v15 Phase 1.3 migration failed: %v"
 	ErrV15Phase4Migration    = "v15 Phase 1.4 migration failed: %v"
+	ErrV15Phase5Migration    = "v15 Phase 1.5 migration failed: %v"
 )
