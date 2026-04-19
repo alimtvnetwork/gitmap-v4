@@ -91,7 +91,7 @@ func resolveDeployedFromData(data []byte) (string, int) {
 		binaryName = constants.DoctorDefaultBinary
 	}
 
-	deployedBinary := filepath.Join(deployPath, constants.GitMapSubdir, binaryName)
+	deployedBinary := filepath.Join(deployPath, constants.GitMapCliSubdir, binaryName)
 	if _, err := os.Stat(deployedBinary); err != nil {
 		printIssue(constants.DoctorDeployNotFound, deployedBinary)
 		printFix(constants.DoctorDeployRunFix)

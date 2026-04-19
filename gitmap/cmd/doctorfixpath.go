@@ -149,7 +149,7 @@ func resolveDeployedPath(data []byte) (string, error) {
 		binaryName = constants.DoctorDefaultBinary
 	}
 
-	deployed := filepath.Join(deployPath, constants.GitMapSubdir, binaryName)
+	deployed := filepath.Join(deployPath, constants.GitMapCliSubdir, binaryName)
 	if _, err := os.Stat(deployed); err != nil {
 		return "", fmt.Errorf(constants.DoctorResolveNotFound, deployed)
 	}

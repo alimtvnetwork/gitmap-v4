@@ -79,7 +79,29 @@ const (
 	JSONKeyBuildOutput   = "buildOutput"
 	JSONKeyBinaryName    = "binaryName"
 	BackupSuffix         = ".old"
-	GitMapSubdir         = "gitmap"
+	// GitMapSubdir is the SOURCE-REPO subdirectory name (<RepoRoot>/gitmap/...).
+	// Do NOT use this for deploy paths — use GitMapCliSubdir instead.
+	GitMapSubdir = "gitmap"
+	// GitMapCliSubdir is the DEPLOY-TARGET subdirectory name
+	// (<DeployRoot>/gitmap-cli/gitmap.exe). Renamed from "gitmap" in v3.6.0
+	// to eliminate visual collision with the binary name. run.ps1 migrates
+	// any legacy <DeployRoot>/gitmap/ install on next invocation.
+	GitMapCliSubdir = "gitmap-cli"
+)
+
+// Bare-invocation banner suppression (v3.6.0+).
+const (
+	FlagNoBanner       = "--no-banner"
+	EnvGitMapQuiet     = "GITMAP_QUIET"
+	EnvGitMapQuietTrue = "1"
+)
+
+// Bare-invocation binary readout labels (v3.6.0+).
+const (
+	BinaryReadoutActive   = "  Active binary:    %s\n"
+	BinaryReadoutDeployed = "  Deployed binary:  %s\n"
+	BinaryReadoutConfig   = "  Config binary:    %s\n"
+	BinaryReadoutMissing  = "(not found)"
 )
 
 // Doctor format markers.
