@@ -18,6 +18,9 @@ p
 | --group \<name\> | — | Pull all repos in a group |
 | --all | false | Pull all tracked repos |
 | --verbose | false | Enable verbose logging |
+| --parallel \<N\> | 1 | Run up to N pulls concurrently (worker pool) |
+| --only-available | false | Skip repos whose latest probe reports no new tag |
+| --stop-on-fail | false | Halt the batch after the first failure |
 
 ## Prerequisites
 
