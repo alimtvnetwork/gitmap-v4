@@ -106,6 +106,21 @@ func dispatchTooling(command string) bool {
 
 		return true
 	}
+	if command == constants.CmdSelfInstall {
+		runSelfInstall(os.Args[2:])
+
+		return true
+	}
+	if command == constants.CmdSelfUninstall {
+		runSelfUninstall(os.Args[2:])
+
+		return true
+	}
+	if command == constants.CmdSelfUninstallRunner {
+		runSelfUninstallRunner()
+
+		return true
+	}
 	if command == constants.CmdPending {
 		runPending()
 
