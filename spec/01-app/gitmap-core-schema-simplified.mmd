@@ -1,0 +1,73 @@
+---
+title: GitMap Core Schema (Simplified)
+---
+erDiagram
+    Repos {
+        INTEGER Id PK
+        TEXT Slug
+        TEXT RepoName
+        TEXT HttpsUrl
+        TEXT SshUrl
+        TEXT Branch
+        TEXT RelativePath
+        TEXT AbsolutePath UK
+        TEXT CloneInstruction
+        TEXT Notes
+        TEXT CurrentVersionTag
+        INTEGER CurrentVersionNum
+        TEXT CreatedAt
+        TEXT UpdatedAt
+    }
+
+    Groups {
+        INTEGER Id PK
+        TEXT Name UK
+        TEXT Description
+        TEXT Color
+        TEXT CreatedAt
+    }
+
+    GroupRepos {
+        INTEGER GroupId FK
+        INTEGER RepoId FK
+    }
+
+    Aliases {
+        INTEGER Id PK
+        TEXT Alias UK
+        INTEGER RepoId FK
+        TEXT CreatedAt
+    }
+
+    RepoVersionHistory {
+        INTEGER Id PK
+        INTEGER RepoId FK
+        TEXT FromVersionTag
+        INTEGER FromVersionNum
+        TEXT ToVersionTag
+        INTEGER ToVersionNum
+        TEXT FlattenedPath
+        TEXT CreatedAt
+    }
+
+    Releases {
+        INTEGER Id PK
+        TEXT Version
+        TEXT Tag UK
+        TEXT Branch
+        TEXT SourceBranch
+        TEXT CommitSha
+        TEXT Changelog
+        TEXT Notes
+        INTEGER Draft
+        INTEGER PreRelease
+        INTEGER IsLatest
+        TEXT Source
+        TEXT CreatedAt
+    }
+
+    Repos ||--o{ GroupRepos : "belongs to"
+    Groups ||--o{ GroupRepos : "contains"
+    Repos ||--o{ Aliases : "has"
+    Repos ||--o{ RepoVersionHistory : "tracks"
+    Repos ||--o{ Releases : "published"
