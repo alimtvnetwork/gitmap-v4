@@ -1,5 +1,5 @@
 # Memory: features/v15-rename-progress
-Updated: now
+Updated: now (Malaysia, UTC+8)
 
 Phase 1 of the v15 database naming alignment is in flight (DB schema migration only, NO new commands or features yet).
 
@@ -10,38 +10,69 @@ PascalCase + **singular** table names + `{TableName}Id` primary keys + FKs match
 
 | Phase | Scope | Status |
 |---|---|---|
-| 1.1 | `Repos` → `Repo`, `Id` → `RepoId`, `GroupRepos` → `GroupRepo`, index → `IdxRepo_AbsolutePath`, child-FK clauses updated in 4 sibling constants files (Aliases, DetectedProjects, RepoVersionHistory, GroupRepo), `migrateV15Repo()` added, version bump to v3.1.0 | DONE (sandbox, awaits user `go build` + `go test` verification) |
-| 1.2 | `Groups` → `Group` (Id → GroupId), `Releases` → `Release` (+IsDraft/IsPreRelease bool fix moved to 1.5), `Aliases` → `Alias`, `Bookmarks` → `Bookmark` | TODO |
-| 1.3 | `Amendments` → `Amendment`, `CommitTemplates` → `CommitTemplate`, `Settings` → `Setting`, `SSHKeys` → `SshKey`, `InstalledTools` → `InstalledTool`, `TempReleases` → `TempRelease` | TODO |
+| 1.1 | `Repos` → `Repo` (RepoId PK), `GroupRepos` → `GroupRepo`, index → `IdxRepo_AbsolutePath` | DONE (v3.1.0) |
+| 1.2 | `Groups` → `Group` (GroupId), `Releases` → `Release` (ReleaseId), `Aliases` → `Alias` (AliasId), `Bookmarks` → `Bookmark` (BookmarkId) | DONE (v3.3.0) |
+| 1.3 | `Amendments` → `Amendment`, `CommitTemplates` → `CommitTemplate`, `Settings` → `Setting`, `SSHKeys` → `SshKey`, `InstalledTools` → `InstalledTool`, `TempReleases` → `TempRelease` | DONE (v3.3.0) |
 | 1.4 | ZipGroup family + Project family (incl. `CSharp` → `Csharp` strict v15) + Task family + History tables | TODO |
 | 1.5 | Boolean prefix fixes (`Release.Draft` → `IsDraft`, `Release.PreRelease` → `IsPreRelease`) | TODO |
 | 1.6 | Update spec/12, regenerate both ERDs, bump CHANGELOG entry, update mem://index core | TODO |
 
-## Phase 1.1 — what changed
+## Phase 1.2 + 1.3 — what changed in this turn
 
-### Files edited
-- `gitmap/constants/constants_store.go` — full rewrite. Renamed constants: `TableRepo`, `TableGroupRepo`, `SQLCreateRepo`, `SQLCreateGroupRepo`, `SQLDropRepo`, `SQLDropGroupRepo`. Added `LegacyTableRepos`, `LegacyTableGroupRepos`, `SQLDropLegacyAbsPathIndex`, `MsgV15RepoMigrationStart/Done`, `ErrV15RepoMigration/CountMismatch`. Index renamed: `idx_Repos_AbsolutePath` → `IdxRepo_AbsolutePath`. Every `Id` PK reference in repo SQL is now `RepoId`.
-- `gitmap/constants/constants_alias.go` — FK clause `REFERENCES Repos(Id)` → `REFERENCES Repo(RepoId)`. Joins `JOIN Repos r ON a.RepoId = r.Id` → `JOIN Repo r ON a.RepoId = r.RepoId`. `SELECT r.Id` → `SELECT r.RepoId`.
-- `gitmap/constants/constants_version_history.go` — FK clause + ALTER TABLE Repos → Repo + WHERE Id → WHERE RepoId + SQLSelectRepoIDByPath now selects `RepoId FROM Repo`.
-- `gitmap/constants/constants_project_sql.go` — FK on DetectedProjects + JOIN Repos r ON dp.RepoId = r.Id → JOIN Repo.
-- `gitmap/store/store.go` — Migrate() now calls `migrateV15Repo()` between `migrateLegacyIDs()` and the standard CREATE TABLE pass. Reset() drops both `GroupRepo` and legacy `GroupRepos`/`Repos` for safety.
-- `gitmap/store/migrate_v15repo.go` — NEW. The atomic table-rebuild dance with row-count parity check.
-- `gitmap/store/migrateids.go` — `rebuildReposTable()` now defines its legacy create SQL inline (the constant `SQLCreateRepos` was removed). References `LegacyTableRepos`.
-- `gitmap/constants/constants.go` — Version bumped to `3.1.0`.
-- `spec/01-app/gitmap-core-schema-simplified.mmd` — ERD updated to show `Repo` + `RepoId` + `GroupRepo`.
+### New shared infrastructure
+- **`gitmap/store/migrate_v15rebuild.go`** — generic `runV15Rebuild(spec)` helper using a `v15RebuildSpec` struct (OldTable, NewTable, NewCreateSQL, OldColumnList, NewColumnList, StartMsg, DoneMsg). Handles PRAGMA foreign_keys toggle, CREATE → INSERT SELECT → row-count parity check → DROP. Idempotent via `tableExists()` detect-then-act.
 
-### Migration flow on first launch after upgrade
-1. `migrateLegacyIDs()` runs (no-op unless very old UUID-PK install).
-2. `migrateV15Repo()` runs. If `Repos` table exists: PRAGMA foreign_keys=OFF → CREATE Repo + IdxRepo_AbsolutePath → INSERT INTO Repo SELECT FROM Repos (preserving Id values as RepoId, plus all CreatedAt/UpdatedAt timestamps) → row-count check → DROP Repos → DROP legacy index → PRAGMA foreign_keys=ON.
-3. Standard CREATE TABLE pass runs. Child tables (Aliases, DetectedProjects, RepoVersionHistory, GroupRepo) all use `IF NOT EXISTS` so they survive the rename. New installs get `REFERENCES Repo(RepoId)` directly. Existing installs keep their old FK text pointing at "Repos(Id)" — SQLite tolerates this with `foreign_keys=OFF` during the rename, and on subsequent inserts the FK is checked by stored schema; we accept this minor inconsistency until Phase 1.2/1.3 rebuilds those child tables for their own renames.
+### Phase 1.2 migrator
+- **`gitmap/store/migrate_v15phase2.go`** — `migrateV15Phase2()` runs four `runV15Rebuild` specs in dependency-safe order: Group → Release → Alias → Bookmark. Then calls `rebuildGroupRepoFK()` to rewrite the GroupRepo CREATE so its FK text references the new singular `"Group"(GroupId)` and `Repo(RepoId)` (SQLite stores FK clauses as text in sqlite_master and does NOT auto-update them when parent tables rename).
 
-### Known follow-ups for Phase 1.2+
-- The 4 child tables (Aliases, DetectedProjects, RepoVersionHistory, GroupRepo) still have stale FK schema text on existing user databases (says `REFERENCES Repos(Id)` even though `Repos` no longer exists). The constraint is functionally inactive until those tables are themselves rebuilt. **Mitigation:** when Phase 1.2 renames Aliases → Alias and Phase 1.4 renames DetectedProjects → DetectedProject, their table-rebuild dance will simultaneously rewrite the FK clause. RepoVersionHistory and GroupRepo will need explicit FK-only rebuilds in Phase 1.6 if their table names don't change.
-- Version bumped optimistically to v3.1.0 — bump again at Phase 1.6 final to v3.2.0 if desired.
+### Phase 1.3 migrator
+- **`gitmap/store/migrate_v15phase3.go`** — `migrateV15Phase3()` runs six `runV15Rebuild` specs: Amendment, CommitTemplate, Setting (Key PK preserved), SshKey (also fixes SSH→Ssh abbreviation), InstalledTool, TempRelease. Setting uses `Key`/`Value` for both old and new column lists since there is no Id column.
+
+### Pre-Phase-2 column patch
+- **`store.go::preV15Phase2EnsureReleaseColumns()`** — runs ALTER on legacy `Releases` to ensure `Source` and `Notes` columns exist before the v15 rebuild SELECTs them by name. Protects very old installs that predate those columns.
+
+### Constants files rewritten (singular + {Table}Id)
+- `constants_store.go` — `SQLCreateGroup` (double-quoted reserved word), `SQLCreateRelease` (ReleaseId), `SQLCreateGroupRepo` references `"Group"(GroupId)` and `Repo(RepoId)`. `SQLAddSourceColumn` and `SQLAddNotesColumn` now target singular `Release`. New: `SQLImportInsertGroup`, `SQLDropGroup`, `SQLDropRelease`, `ErrV15Phase2Migration`, `ErrV15Phase3Migration`.
+- `constants_alias.go` — `SQLCreateAlias` (AliasId), all DML/JOINs use singular `Alias`. New: `SQLDropAlias`, `LegacyTableAliases`.
+- `constants_bookmark.go` — `SQLCreateBookmark` (BookmarkId), new `SQLImportInsertBookmark`, `SQLDropBookmark`.
+- `constants_amend.go` — `SQLCreateAmendment` (AmendmentId), all DML uses singular.
+- `constants_seo.go` — `SQLCreateCommitTemplate` (CommitTemplateId).
+- `constants_settings.go` — `SQLCreateSetting` (Key PK preserved).
+- `constants_ssh.go` — `SQLCreateSshKey` (SshKeyId; v15 abbreviation fix). Existing constant names like `SQLInsertSSHKey` retained for callsite stability — they now target the new `SshKey` table.
+- `constants_installedtools.go` — `SQLCreateInstalledTool` (InstalledToolId).
+- `constants_temprelease.go` — `SQLCreateTempRelease` (TempReleaseId). `SQLMigrateTRCommitSha` still targets legacy `TempReleases` (runs BEFORE the v15 rebuild copies the column).
+
+### Wiring
+- **`store.go::Migrate()`** order: `migrateLegacyIDs` → `migrateV15Repo` → `preV15Phase2EnsureReleaseColumns` → `migrateV15Phase2` → `migrateTRCommitSha` → `migrateV15Phase3` → standard CREATE TABLE pass (now uses all v15 singular names) → ALTER pass → seeds.
+- **`store.go::Reset()`** — drop list now lists v15 singulars first, then legacy plurals. Each plural drop is a safe no-op when the table is absent. Covers all 10 newly renamed tables.
+- **`store.go::migrateNotesColumn`** docstring updated (now says `Release` not `Releases`).
+- **`gitmap/store/import.go`** — uses `constants.SQLImportInsertGroup` and `constants.SQLImportInsertBookmark` instead of inline SQL strings.
+
+### Tests touched
+- `gitmap/tests/constants_test/seo_constants_test.go` — `TableCommitTemplates` → `TableCommitTemplate`, `SQLCreateCommitTemplates` → `SQLCreateCommitTemplate`, expected column `Id` → `CommitTemplateId`.
+
+### Version
+- `gitmap/constants/constants.go` → `v3.3.0`.
+
+## Migration safety contract
+1. Detect-then-act on every legacy plural — fresh installs are no-ops.
+2. PRAGMA foreign_keys=OFF for the duration of each table rebuild.
+3. Row-count parity check between old and new on every rebuild — abort + rollback (via Go-side return) on mismatch.
+4. Legacy plural names retained as `LegacyTable*` constants and listed in `Reset()` so cleanup works at any migration state.
+5. SQLite-reserved word `Group` is double-quoted in every DDL/DML occurrence.
+
+## Known limitations / debt for later phases
+- The v15 rename touched 10 tables and their entire SQL surface this turn. A `go build` and `go test` on Windows are required to confirm zero compile or runtime regressions; the sandbox has no Go toolchain.
+- Phase 1.4 will rebuild ZipGroup, ZipGroupItem, DetectedProject, ProjectType, GoProjectMetadata, GoRunnableFile, CSharpProjectMetadata, CSharpProjectFile, CSharpKeyFile (incl. `CSharp`→`Csharp` strict abbreviation per user's earlier choice), Task tables, and CommandHistory. RepoVersionHistory FK text still references `Repo(RepoId)` correctly (set in Phase 1.1) but its own table will keep that name (uncountable noun).
+- Phase 1.5: `Release.Draft` → `IsDraft` and `Release.PreRelease` → `IsPreRelease` (column rename via ALTER … RENAME COLUMN, supported by SQLite ≥ 3.25).
+- Phase 1.6: regenerate both ERDs, update spec/12-consolidated-guidelines/11-database.md, CHANGELOG entry, mem://index core update, version bump to v3.4.0 (or higher).
 
 ## What's still NOT done in Phase 1
-- ScanFolder table (deferred to Phase 2).
-- VersionProbe table (deferred to Phase 2).
-- `gitmap find-next` command (deferred to Phase 2).
-- `gitmap pull` parallel runner (deferred to Phase 3).
-- `gitmap cn next all` bulk update (deferred to Phase 3).
+- Phase 1.4, 1.5, 1.6 (see above).
+
+## Deferred to later phases
+- ScanFolder table (Phase 2).
+- VersionProbe table (Phase 2).
+- `gitmap find-next` command (Phase 2).
+- `gitmap pull` parallel runner (Phase 3).
+- `gitmap cn next all` bulk update (Phase 3).
