@@ -13,7 +13,7 @@ PascalCase + **singular** table names + `{TableName}Id` primary keys + FKs match
 | 1.1 | `Repos` → `Repo` (RepoId PK), `GroupRepos` → `GroupRepo`, index → `IdxRepo_AbsolutePath` | DONE (v3.1.0) |
 | 1.2 | `Groups` → `Group` (GroupId), `Releases` → `Release` (ReleaseId), `Aliases` → `Alias` (AliasId), `Bookmarks` → `Bookmark` (BookmarkId) | DONE (v3.3.0) |
 | 1.3 | `Amendments` → `Amendment`, `CommitTemplates` → `CommitTemplate`, `Settings` → `Setting`, `SSHKeys` → `SshKey`, `InstalledTools` → `InstalledTool`, `TempReleases` → `TempRelease` | DONE (v3.3.0) |
-| 1.4 | ZipGroup family + Project family (incl. `CSharp` → `Csharp` strict v15) + Task family + History tables | **PARTIAL** (constants done, store-side + migrator NOT done) |
+| 1.4 | ZipGroup family + Project family (incl. `CSharp` → `Csharp` strict v15) + Task family + History tables | DONE (v3.4.0) |
 | 1.5 | Boolean prefix fixes (`Release.Draft` → `IsDraft`, `Release.PreRelease` → `IsPreRelease`) | TODO |
 | 1.6 | Update spec/12, regenerate both ERDs, bump CHANGELOG entry, update mem://index core | TODO |
 
