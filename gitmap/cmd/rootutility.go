@@ -104,6 +104,11 @@ func dispatchUtility(command string) bool {
 
 		return true
 	}
+	if command == constants.CmdFindNext || command == constants.CmdFindNextAlias {
+		runFindNext(os.Args[2:])
+
+		return true
+	}
 
 	return false
 }
