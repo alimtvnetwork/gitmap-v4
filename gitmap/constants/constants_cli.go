@@ -56,8 +56,6 @@ const (
 	CmdRevertRunner          = "revert-runner" // gitmap:cmd skip
 	CmdListReleases          = "list-releases"
 	CmdListReleasesAlias     = "lr"
-	CmdCDCmd                 = "cd"
-	CmdCDCmdAlias            = "go"
 	CmdCompletion            = "completion"
 	CmdCompletionAlias       = "cmp"
 	CmdClearReleaseJSON      = "clear-release-json"
