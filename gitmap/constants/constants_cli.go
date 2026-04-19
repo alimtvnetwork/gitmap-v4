@@ -77,6 +77,8 @@ const (
 	CmdLLMDocs               = "llm-docs"
 	CmdLLMDocsAlias          = "ld"
 	CmdSetSourceRepo         = "set-source-repo" // gitmap:cmd skip
+	CmdSelfInstall           = "self-install"
+	CmdSelfUninstall         = "self-uninstall"
 )
 
 // Clone shorthands.
