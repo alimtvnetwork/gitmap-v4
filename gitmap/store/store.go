@@ -82,6 +82,11 @@ func (db *DB) Migrate() error {
 		return fmt.Errorf(constants.ErrV15RepoMigration, err)
 	}
 
+	// Pre-Phase-1.2: legacy `Releases` may be missing `Source` and/or `Notes`
+	// columns on very old installs. Phase 1.2 SELECTs every column by name
+	// when copying into the new `Release`, so add them here first. Idempotent.
+	db.preV15Phase2EnsureReleaseColumns()
+
 	if err := db.migrateV15Phase2(); err != nil {
 		return fmt.Errorf(constants.ErrV15Phase2Migration, err)
 	}
