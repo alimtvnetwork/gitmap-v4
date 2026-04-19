@@ -44,8 +44,8 @@ const SQLCreateGoRunnableFiles = `CREATE TABLE IF NOT EXISTS GoRunnableFiles (
 	UNIQUE(GoMetadataId, RelativePath)
 )`
 
-// SQL: create CSharpProjectMetadata table.
-const SQLCreateCSharpProjectMeta = `CREATE TABLE IF NOT EXISTS CSharpProjectMetadata (
+// SQL: create CsharpProjectMetadata table.
+const SQLCreateCsharpProjectMeta = `CREATE TABLE IF NOT EXISTS CsharpProjectMetadata (
 	Id                INTEGER PRIMARY KEY AUTOINCREMENT,
 	DetectedProjectId INTEGER NOT NULL UNIQUE
 		REFERENCES DetectedProjects(Id) ON DELETE CASCADE,
@@ -55,11 +55,11 @@ const SQLCreateCSharpProjectMeta = `CREATE TABLE IF NOT EXISTS CSharpProjectMeta
 	SdkVersion        TEXT DEFAULT ''
 )`
 
-// SQL: create CSharpProjectFiles table.
-const SQLCreateCSharpProjectFiles = `CREATE TABLE IF NOT EXISTS CSharpProjectFiles (
+// SQL: create CsharpProjectFiles table.
+const SQLCreateCsharpProjectFiles = `CREATE TABLE IF NOT EXISTS CsharpProjectFiles (
 	Id               INTEGER PRIMARY KEY AUTOINCREMENT,
-	CSharpMetadataId INTEGER NOT NULL
-		REFERENCES CSharpProjectMetadata(Id) ON DELETE CASCADE,
+	CsharpMetadataId INTEGER NOT NULL
+		REFERENCES CsharpProjectMetadata(Id) ON DELETE CASCADE,
 	FilePath         TEXT NOT NULL,
 	RelativePath     TEXT NOT NULL,
 	FileName         TEXT NOT NULL,
@@ -67,18 +67,18 @@ const SQLCreateCSharpProjectFiles = `CREATE TABLE IF NOT EXISTS CSharpProjectFil
 	TargetFramework  TEXT DEFAULT '',
 	OutputType       TEXT DEFAULT '',
 	Sdk              TEXT DEFAULT '',
-	UNIQUE(CSharpMetadataId, RelativePath)
+	UNIQUE(CsharpMetadataId, RelativePath)
 )`
 
-// SQL: create CSharpKeyFiles table.
-const SQLCreateCSharpKeyFiles = `CREATE TABLE IF NOT EXISTS CSharpKeyFiles (
+// SQL: create CsharpKeyFiles table.
+const SQLCreateCsharpKeyFiles = `CREATE TABLE IF NOT EXISTS CsharpKeyFiles (
 	Id               INTEGER PRIMARY KEY AUTOINCREMENT,
-	CSharpMetadataId INTEGER NOT NULL
-		REFERENCES CSharpProjectMetadata(Id) ON DELETE CASCADE,
+	CsharpMetadataId INTEGER NOT NULL
+		REFERENCES CsharpProjectMetadata(Id) ON DELETE CASCADE,
 	FileType         TEXT NOT NULL,
 	FilePath         TEXT NOT NULL,
 	RelativePath     TEXT NOT NULL,
-	UNIQUE(CSharpMetadataId, RelativePath)
+	UNIQUE(CsharpMetadataId, RelativePath)
 )`
 
 // SQL: seed project types.
@@ -119,7 +119,7 @@ const SQLUpsertGoRunnable = `INSERT INTO GoRunnableFiles
 		FilePath=excluded.FilePath`
 
 // SQL: upsert C# metadata.
-const SQLUpsertCSharpMetadata = `INSERT INTO CSharpProjectMetadata
+const SQLUpsertCsharpMetadata = `INSERT INTO CsharpProjectMetadata
 	(DetectedProjectId, SlnPath, SlnName, GlobalJsonPath, SdkVersion)
 	VALUES (?, ?, ?, ?, ?)
 	ON CONFLICT(DetectedProjectId) DO UPDATE SET
@@ -129,10 +129,10 @@ const SQLUpsertCSharpMetadata = `INSERT INTO CSharpProjectMetadata
 		SdkVersion=excluded.SdkVersion`
 
 // SQL: upsert C# project file.
-const SQLUpsertCSharpProjectFile = `INSERT INTO CSharpProjectFiles
-	(CSharpMetadataId, FilePath, RelativePath, FileName, ProjectName, TargetFramework, OutputType, Sdk)
+const SQLUpsertCsharpProjectFile = `INSERT INTO CsharpProjectFiles
+	(CsharpMetadataId, FilePath, RelativePath, FileName, ProjectName, TargetFramework, OutputType, Sdk)
 	VALUES (?, ?, ?, ?, ?, ?, ?, ?)
-	ON CONFLICT(CSharpMetadataId, RelativePath) DO UPDATE SET
+	ON CONFLICT(CsharpMetadataId, RelativePath) DO UPDATE SET
 		FilePath=excluded.FilePath,
 		FileName=excluded.FileName,
 		ProjectName=excluded.ProjectName,
@@ -141,10 +141,10 @@ const SQLUpsertCSharpProjectFile = `INSERT INTO CSharpProjectFiles
 		Sdk=excluded.Sdk`
 
 // SQL: upsert C# key file.
-const SQLUpsertCSharpKeyFile = `INSERT INTO CSharpKeyFiles
-	(CSharpMetadataId, FileType, FilePath, RelativePath)
+const SQLUpsertCsharpKeyFile = `INSERT INTO CsharpKeyFiles
+	(CsharpMetadataId, FileType, FilePath, RelativePath)
 	VALUES (?, ?, ?, ?)
-	ON CONFLICT(CSharpMetadataId, RelativePath) DO UPDATE SET
+	ON CONFLICT(CsharpMetadataId, RelativePath) DO UPDATE SET
 		FileType=excluded.FileType,
 		FilePath=excluded.FilePath`
 
@@ -181,37 +181,37 @@ const SQLSelectGoRunnables = `SELECT Id, GoMetadataId, RunnableName, FilePath,
 	ORDER BY RunnableName`
 
 // SQL: query C# metadata.
-const SQLSelectCSharpMetadata = `SELECT Id, DetectedProjectId, SlnPath, SlnName,
+const SQLSelectCsharpMetadata = `SELECT Id, DetectedProjectId, SlnPath, SlnName,
 	GlobalJsonPath, SdkVersion
-	FROM CSharpProjectMetadata WHERE DetectedProjectId = ?`
+	FROM CsharpProjectMetadata WHERE DetectedProjectId = ?`
 
 // SQL: query C# project files.
-const SQLSelectCSharpProjectFiles = `SELECT Id, CSharpMetadataId, FilePath,
+const SQLSelectCsharpProjectFiles = `SELECT Id, CsharpMetadataId, FilePath,
 	RelativePath, FileName, ProjectName, TargetFramework, OutputType, Sdk
-	FROM CSharpProjectFiles WHERE CSharpMetadataId = ?
+	FROM CsharpProjectFiles WHERE CsharpMetadataId = ?
 	ORDER BY RelativePath`
 
 // SQL: query C# key files.
-const SQLSelectCSharpKeyFiles = `SELECT Id, CSharpMetadataId, FileType, FilePath,
+const SQLSelectCsharpKeyFiles = `SELECT Id, CsharpMetadataId, FileType, FilePath,
 	RelativePath
-	FROM CSharpKeyFiles WHERE CSharpMetadataId = ?
+	FROM CsharpKeyFiles WHERE CsharpMetadataId = ?
 	ORDER BY RelativePath`
 
 // SQL: stale cleanup.
 const (
 	SQLDeleteStaleProjects       = "DELETE FROM DetectedProjects WHERE RepoId = ? AND Id NOT IN (%s)"
 	SQLDeleteStaleGoRunnables    = "DELETE FROM GoRunnableFiles WHERE GoMetadataId = ? AND Id NOT IN (%s)"
-	SQLDeleteStaleCSharpFiles    = "DELETE FROM CSharpProjectFiles WHERE CSharpMetadataId = ? AND Id NOT IN (%s)"
-	SQLDeleteStaleCSharpKeyFiles = "DELETE FROM CSharpKeyFiles WHERE CSharpMetadataId = ? AND Id NOT IN (%s)"
+	SQLDeleteStaleCsharpFiles    = "DELETE FROM CsharpProjectFiles WHERE CsharpMetadataId = ? AND Id NOT IN (%s)"
+	SQLDeleteStaleCsharpKeyFiles = "DELETE FROM CsharpKeyFiles WHERE CsharpMetadataId = ? AND Id NOT IN (%s)"
 )
 
 // SQL: drop project detection tables.
 const (
 	SQLDropGoRunnableFiles    = "DROP TABLE IF EXISTS GoRunnableFiles"
 	SQLDropGoProjectMetadata  = "DROP TABLE IF EXISTS GoProjectMetadata"
-	SQLDropCSharpKeyFiles     = "DROP TABLE IF EXISTS CSharpKeyFiles"
-	SQLDropCSharpProjectFiles = "DROP TABLE IF EXISTS CSharpProjectFiles"
-	SQLDropCSharpProjectMeta  = "DROP TABLE IF EXISTS CSharpProjectMetadata"
+	SQLDropCsharpKeyFiles     = "DROP TABLE IF EXISTS CsharpKeyFiles"
+	SQLDropCsharpProjectFiles = "DROP TABLE IF EXISTS CsharpProjectFiles"
+	SQLDropCsharpProjectMeta  = "DROP TABLE IF EXISTS CsharpProjectMetadata"
 	SQLDropDetectedProjects   = "DROP TABLE IF EXISTS DetectedProjects"
 	SQLDropProjectTypes       = "DROP TABLE IF EXISTS ProjectTypes"
 )

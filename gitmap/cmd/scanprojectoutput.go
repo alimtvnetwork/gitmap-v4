@@ -18,7 +18,7 @@ var projectTypeJSONMap = map[string]string{
 	constants.ProjectKeyNode:   constants.JSONFileNodeProjects,
 	constants.ProjectKeyReact:  constants.JSONFileReactProjects,
 	constants.ProjectKeyCpp:    constants.JSONFileCppProjects,
-	constants.ProjectKeyCSharp: constants.JSONFileCSharpProjects,
+	constants.ProjectKeyCsharp: constants.JSONFileCsharpProjects,
 }
 
 // writeProjectJSONFiles writes per-type JSON files to the output directory.
@@ -93,7 +93,7 @@ func buildSingleRecord(r detector.DetectionResult) interface{} {
 			detector.DetectionResult
 		}{r}
 	}
-	if r.CSharp != nil {
+	if r.Csharp != nil {
 		return struct {
 			detector.DetectionResult
 		}{r}

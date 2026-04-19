@@ -6,7 +6,7 @@ const (
 	ProjectTypeNodeID   int64 = 2
 	ProjectTypeReactID  int64 = 3
 	ProjectTypeCppID    int64 = 4
-	ProjectTypeCSharpID int64 = 5
+	ProjectTypeCsharpID int64 = 5
 )
 
 // Project type keys.
@@ -15,7 +15,7 @@ const (
 	ProjectKeyNode   = "node"
 	ProjectKeyReact  = "react"
 	ProjectKeyCpp    = "cpp"
-	ProjectKeyCSharp = "csharp"
+	ProjectKeyCsharp = "csharp"
 )
 
 // Project detection table names.
@@ -24,9 +24,9 @@ const (
 	TableDetectedProjects   = "DetectedProjects"
 	TableGoProjectMetadata  = "GoProjectMetadata"
 	TableGoRunnableFiles    = "GoRunnableFiles"
-	TableCSharpProjectMeta  = "CSharpProjectMetadata"
-	TableCSharpProjectFiles = "CSharpProjectFiles"
-	TableCSharpKeyFiles     = "CSharpKeyFiles"
+	TableCsharpProjectMeta  = "CsharpProjectMetadata"
+	TableCsharpProjectFiles = "CsharpProjectFiles"
+	TableCsharpKeyFiles     = "CsharpKeyFiles"
 )
 
 // Project JSON output filenames.
@@ -35,7 +35,7 @@ const (
 	JSONFileNodeProjects   = "node-projects.json"
 	JSONFileReactProjects  = "react-projects.json"
 	JSONFileCppProjects    = "cpp-projects.json"
-	JSONFileCSharpProjects = "csharp-projects.json"
+	JSONFileCsharpProjects = "csharp-projects.json"
 )
 
 // Detection indicator files.
@@ -73,8 +73,8 @@ const (
 	CmdReactReposAlias = "rr"
 	CmdCppRepos        = "cpp-repos"
 	CmdCppReposAlias   = "cr"
-	CmdCSharpRepos     = "csharp-repos"
-	CmdCSharpAlias     = "csr"
+	CmdCsharpRepos     = "csharp-repos"
+	CmdCsharpAlias     = "csr"
 )
 
 // Project query flags.
@@ -89,7 +89,7 @@ const (
 	HelpNodeRepos   = "  node-repos (nr)     List repositories containing Node.js projects"
 	HelpReactRepos  = "  react-repos (rr)    List repositories containing React projects"
 	HelpCppRepos    = "  cpp-repos (cr)      List repositories containing C++ projects"
-	HelpCSharpRepos = "  csharp-repos (csr)  List repositories containing C# projects"
+	HelpCsharpRepos = "  csharp-repos (csr)  List repositories containing C# projects"
 )
 
 // Project detection messages.
@@ -116,9 +116,9 @@ const (
 	ErrProjectCleanup      = "failed to clean stale projects for repo %d: %v\n"
 	ErrGoMetadataUpsert    = "failed to upsert Go metadata: %v"
 	ErrGoRunnableUpsert    = "failed to upsert Go runnable: %v"
-	ErrCSharpMetaUpsert    = "failed to upsert C# metadata: %v"
-	ErrCSharpFileUpsert    = "failed to upsert C# project file: %v"
-	ErrCSharpKeyUpsert     = "failed to upsert C# key file: %v"
+	ErrCsharpMetaUpsert    = "failed to upsert C# metadata: %v"
+	ErrCsharpFileUpsert    = "failed to upsert C# project file: %v"
+	ErrCsharpKeyUpsert     = "failed to upsert C# key file: %v"
 )
 
 // Legacy data recovery messages.
@@ -141,7 +141,7 @@ var ReactIndicatorDeps = []string{
 }
 
 // C# key file patterns.
-var CSharpKeyFilePatterns = []string{
+var CsharpKeyFilePatterns = []string{
 	"global.json",
 	"nuget.config",
 	"Directory.Build.props",

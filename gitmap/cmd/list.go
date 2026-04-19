@@ -18,7 +18,7 @@ var typeKeywords = map[string]string{
 	"nodejs": constants.ProjectKeyNode,
 	"react":  constants.ProjectKeyReact,
 	"cpp":    constants.ProjectKeyCpp,
-	"csharp": constants.ProjectKeyCSharp,
+	"csharp": constants.ProjectKeyCsharp,
 }
 
 // runList handles the "list" subcommand.
