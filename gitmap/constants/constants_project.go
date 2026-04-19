@@ -18,15 +18,27 @@ const (
 	ProjectKeyCsharp = "csharp"
 )
 
-// Project detection table names.
+// Project detection table names (v15: PascalCase singular + {Table}Id PK).
 const (
-	TableProjectTypes       = "ProjectTypes"
-	TableDetectedProjects   = "DetectedProjects"
-	TableGoProjectMetadata  = "GoProjectMetadata"
-	TableGoRunnableFiles    = "GoRunnableFiles"
-	TableCsharpProjectMeta  = "CsharpProjectMetadata"
-	TableCsharpProjectFiles = "CsharpProjectFiles"
-	TableCsharpKeyFiles     = "CsharpKeyFiles"
+	TableProjectType          = "ProjectType"
+	TableDetectedProject      = "DetectedProject"
+	TableGoProjectMetadata    = "GoProjectMetadata"
+	TableGoRunnableFile       = "GoRunnableFile"
+	TableCsharpProjectMeta    = "CsharpProjectMetadata"
+	TableCsharpProjectFile    = "CsharpProjectFile"
+	TableCsharpKeyFile        = "CsharpKeyFile"
+)
+
+// Legacy project detection table names retained ONLY for migration detection
+// (do not use in new SQL). Includes both pre-v15 plurals and the
+// pre-Csharp-rename "CSharp*" spellings.
+const (
+	LegacyTableProjectTypes        = "ProjectTypes"
+	LegacyTableDetectedProjects    = "DetectedProjects"
+	LegacyTableGoRunnableFiles     = "GoRunnableFiles"
+	LegacyTableCsharpProjectMeta   = "CSharpProjectMetadata"  // pre-Csharp spelling
+	LegacyTableCsharpProjectFiles  = "CSharpProjectFiles"     // pre-Csharp spelling + plural
+	LegacyTableCsharpKeyFiles      = "CSharpKeyFiles"         // pre-Csharp spelling + plural
 )
 
 // Project JSON output filenames.
