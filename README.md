@@ -49,6 +49,28 @@ irm https://raw.githubusercontent.com/alimtvnetwork/gitmap-v3/main/gitmap/script
 curl -fsSL https://raw.githubusercontent.com/alimtvnetwork/gitmap-v3/main/gitmap/scripts/install.sh | sh
 ```
 
+### Uninstall — Quick (one-liner)
+
+Removes the gitmap binary, deploy folder, PATH entries, and (optionally) the user data folder. First tries the canonical `gitmap self-uninstall`; falls back to a manual sweep if gitmap is no longer on PATH.
+
+```powershell
+# Windows (PowerShell)
+irm https://raw.githubusercontent.com/alimtvnetwork/gitmap-v3/main/uninstall-quick.ps1 | iex
+```
+
+```bash
+# Linux / macOS
+curl -fsSL https://raw.githubusercontent.com/alimtvnetwork/gitmap-v3/main/uninstall-quick.sh | bash
+```
+
+Useful flags (both scripts):
+
+| Flag | Effect |
+|---|---|
+| `-Yes` / `-y` `--yes` | Skip the "delete user data?" prompt and assume yes |
+| `-KeepData` / `--keep-data` | Always keep `%APPDATA%\gitmap` (Windows) or `~/.config/gitmap` (Unix) |
+| `-InstallDir` / `--dir` | Override the auto-detected deploy root |
+
 ### Scan repos and see results
 
 ```bash

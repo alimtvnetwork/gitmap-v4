@@ -28,12 +28,12 @@ const HomePage = () => {
               {
                 label: "Windows",
                 command:
-                  "Set-ExecutionPolicy Bypass -Scope Process -Force; [System.Net.ServicePointManager]::SecurityProtocol = [System.Net.ServicePointManager]::SecurityProtocol -bor 3072; iex ((New-Object System.Net.WebClient).DownloadString('https://raw.githubusercontent.com/alimtvnetwork/gitmap-v3/main/gitmap/scripts/install.ps1'))",
+                  "irm https://raw.githubusercontent.com/alimtvnetwork/gitmap-v3/main/install-quick.ps1 | iex",
               },
               {
                 label: "Linux / macOS",
                 command:
-                  "curl -fsSL https://raw.githubusercontent.com/alimtvnetwork/gitmap-v3/main/gitmap/scripts/install.sh | sh",
+                  "curl -fsSL https://raw.githubusercontent.com/alimtvnetwork/gitmap-v3/main/install-quick.sh | bash",
               },
             ]}
           />
