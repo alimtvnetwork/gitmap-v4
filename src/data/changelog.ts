@@ -6,6 +6,22 @@ export interface ChangelogEntry {
 
 export const changelog: ChangelogEntry[] = [
   {
+    version: "v3.11.0",
+    date: "2026-04-19",
+    items: [
+      "Fixed v15 Phase 1.4 migration crash on databases first created at v3.5.0+: `GoProjectMetadata` and `PendingTask` rebuilds threw `no such column: Id` because both tables were already singular before v15, so the canonical `CREATE TABLE IF NOT EXISTS` pass had already produced the v15-shaped table (with `{Table}Id` PK). New `adaptOldColumnList()` in `gitmap/store/migrate_v15rebuild.go` detects the existing PK column via `columnExists()` and rewrites the leading `Id` token in `OldColumnList` to `{Table}Id` when needed — idempotent, no-op for genuine legacy paths.",
+      "Fixed `go vet` `non-constant format string` warning in `gitmap/movemerge/finalize.go:50` by reshaping `logErr(prefix, msg string)` to accept a pre-formatted message and moving `fmt.Sprintf(constants.ErrMMPushFailFmt, sha)` to the call site.",
+      "Fixed `gitmap/store/migrations.go` build error caused by an orphan `\"github.com/user/gitmap/constants\"` import.",
+      "Fixed `CmdReleaseAlias` Go redeclaration — the same identifier was bound to `\"r\"` and `\"release-alias\"` in two files. Renamed the `constants_cli.go` constant to `CmdReleaseShort` so `CmdReleaseAlias` belongs exclusively to the `release-alias` family.",
+      "Fixed `cd` / `go` constant collision — removed duplicate `CmdCDCmd` / `CmdCDCmdAlias` from `constants_cli.go` and repointed `gitmap/cmd/rootdata.go` dispatch at the canonical `CmdCD` / `CmdCDAlias` constants in `constants_cd.go`.",
+      "Added `gitmap/cmd/cmdconstants_unique_test.go` (+ helpers): parses every `constants_*.go` using the same `gitmap:cmd top-level` / `gitmap:cmd skip` markers as the completion generator and fails the suite when two distinct `Cmd*` identifiers claim the same string value. Catches redeclarations and dispatch shadowing at CI time before the build phase.",
+      "Added parallel `gitmap pull` worker pool (`pullparallel.go`) with a mutex-guarded `BatchProgress` tracker, opt-in via `--parallel <N>`.",
+      "Added `--only-available` pull pre-filter (`pullfilter.go`) that intersects the target repo list with `FindNext` results so `gitmap pull --only-available` skips repos with no new tags. Fail-open if the database is inaccessible.",
+      "Added `gitmap help probe` and `gitmap help sf` docs (synopsis, flags, examples, 3–8 line realistic terminal simulation) in `gitmap/helptext/`.",
+      "Refactored `constants_cli.go` under the 200-line guideline by extracting the `Shorthand*` group into `constants_clone.go` and the cross-command `Flag*` values into a new `constants_globalflags.go`.",
+    ],
+  },
+  {
     version: "v2.83.0",
     date: "2026-04-16",
     items: [
