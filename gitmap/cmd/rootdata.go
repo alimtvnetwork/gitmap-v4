@@ -83,6 +83,11 @@ func dispatchData(command string) bool {
 
 		return true
 	}
+	if command == constants.CmdReset {
+		runReset(os.Args[2:])
+
+		return true
+	}
 	if command == constants.CmdDBMigrate || command == constants.CmdDBMigrateAlias {
 		runDBMigrate(os.Args[2:])
 
