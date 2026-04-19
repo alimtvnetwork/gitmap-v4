@@ -7,11 +7,13 @@ import (
 	"github.com/user/gitmap/constants"
 )
 
-// migrateLegacyIDs detects if the Repos table uses TEXT IDs (legacy UUIDs)
-// and rebuilds it with INTEGER PRIMARY KEY AUTOINCREMENT. All tables with
-// foreign keys to Repos.Id are dropped and recreated by the normal migration.
+// migrateLegacyIDs detects if the legacy Repos table uses TEXT IDs (UUIDs)
+// and rebuilds it with INTEGER PRIMARY KEY AUTOINCREMENT. Runs BEFORE the
+// v15 rename so that migrateV15Repo() sees a clean integer-PK Repos table.
+// All tables with foreign keys to Repos.Id are dropped and recreated by the
+// normal migration.
 func (db *DB) migrateLegacyIDs() {
-	if !db.hasLegacyTextID(constants.TableRepos) {
+	if !db.hasLegacyTextID(constants.LegacyTableRepos) {
 		return
 	}
 
@@ -83,9 +85,26 @@ func (db *DB) dropGroupRepos() {
 	}
 }
 
-// rebuildReposTable recreates Repos with INTEGER PRIMARY KEY AUTOINCREMENT,
-// preserving all data except the old UUID IDs.
+// rebuildReposTable recreates the LEGACY Repos table (still plural, still
+// `Id` PK) with INTEGER PRIMARY KEY AUTOINCREMENT, preserving all data
+// except the old UUID IDs. The subsequent migrateV15Repo() pass then
+// renames Repos → Repo and Id → RepoId.
 func (db *DB) rebuildReposTable() error {
+	const legacyCreate = `CREATE TABLE IF NOT EXISTS Repos (
+		Id               INTEGER PRIMARY KEY AUTOINCREMENT,
+		Slug             TEXT NOT NULL,
+		RepoName         TEXT NOT NULL,
+		HttpsUrl         TEXT NOT NULL,
+		SshUrl           TEXT NOT NULL,
+		Branch           TEXT NOT NULL,
+		RelativePath     TEXT NOT NULL,
+		AbsolutePath     TEXT NOT NULL,
+		CloneInstruction TEXT NOT NULL,
+		Notes            TEXT DEFAULT '',
+		CreatedAt        TEXT DEFAULT CURRENT_TIMESTAMP,
+		UpdatedAt        TEXT DEFAULT CURRENT_TIMESTAMP
+	)`
+
 	if _, err := db.conn.Exec("PRAGMA foreign_keys = OFF"); err != nil {
 		return fmt.Errorf("disable foreign keys: %w", err)
 	}
@@ -94,12 +113,8 @@ func (db *DB) rebuildReposTable() error {
 		return fmt.Errorf("rename Repos to Repos_legacy: %w", err)
 	}
 
-	if _, err := db.conn.Exec(constants.SQLCreateRepos); err != nil {
+	if _, err := db.conn.Exec(legacyCreate); err != nil {
 		return fmt.Errorf("create new Repos table: %w", err)
-	}
-
-	if _, err := db.conn.Exec(constants.SQLCreateAbsPathIndex); err != nil {
-		return fmt.Errorf("create AbsPath index: %w", err)
 	}
 
 	if _, err := db.conn.Exec(`INSERT INTO Repos (Slug, RepoName, HttpsUrl, SshUrl, Branch, RelativePath, AbsolutePath, CloneInstruction, Notes)

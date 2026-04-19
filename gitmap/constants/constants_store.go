@@ -13,17 +13,25 @@ const (
 	ErrLockHeld        = "another gitmap process is running (PID %d).\n  If incorrect, delete: %s"
 )
 
-// Table names.
+// Table names (v15: PascalCase + singular).
 const (
-	TableRepos     = "Repos"
-	TableGroups    = "Groups"
-	TableGroupRepo = "GroupRepos"
-	TableReleases  = "Releases"
+	TableRepo      = "Repo"
+	TableGroup     = "Group"
+	TableGroupRepo = "GroupRepo"
+	TableRelease   = "Release"
 )
 
-// SQL: create Repos table.
-const SQLCreateRepos = `CREATE TABLE IF NOT EXISTS Repos (
-	Id               INTEGER PRIMARY KEY AUTOINCREMENT,
+// Legacy table names retained only for migration detection (do not use in new SQL).
+const (
+	LegacyTableRepos      = "Repos"
+	LegacyTableGroups     = "Groups"
+	LegacyTableGroupRepos = "GroupRepos"
+	LegacyTableReleases   = "Releases"
+)
+
+// SQL: create Repo table (v15: singular + RepoId PK).
+const SQLCreateRepo = `CREATE TABLE IF NOT EXISTS Repo (
+	RepoId           INTEGER PRIMARY KEY AUTOINCREMENT,
 	Slug             TEXT NOT NULL,
 	RepoName         TEXT NOT NULL,
 	HttpsUrl         TEXT NOT NULL,
@@ -37,7 +45,7 @@ const SQLCreateRepos = `CREATE TABLE IF NOT EXISTS Repos (
 	UpdatedAt        TEXT DEFAULT CURRENT_TIMESTAMP
 )`
 
-// SQL: create Groups table.
+// SQL: create Groups table (legacy plural — renamed in Phase 1.2).
 const SQLCreateGroups = `CREATE TABLE IF NOT EXISTS Groups (
 	Id          INTEGER PRIMARY KEY AUTOINCREMENT,
 	Name        TEXT NOT NULL UNIQUE,
@@ -46,14 +54,14 @@ const SQLCreateGroups = `CREATE TABLE IF NOT EXISTS Groups (
 	CreatedAt   TEXT DEFAULT CURRENT_TIMESTAMP
 )`
 
-// SQL: create GroupRepos join table.
-const SQLCreateGroupRepos = `CREATE TABLE IF NOT EXISTS GroupRepos (
+// SQL: create GroupRepo join table (v15: singular). RepoId FK now points to Repo(RepoId).
+const SQLCreateGroupRepo = `CREATE TABLE IF NOT EXISTS GroupRepo (
 	GroupId INTEGER NOT NULL REFERENCES Groups(Id) ON DELETE CASCADE,
-	RepoId  INTEGER NOT NULL REFERENCES Repos(Id) ON DELETE CASCADE,
+	RepoId  INTEGER NOT NULL REFERENCES Repo(RepoId) ON DELETE CASCADE,
 	PRIMARY KEY (GroupId, RepoId)
 )`
 
-// SQL: create Releases table.
+// SQL: create Releases table (legacy plural — renamed in Phase 1.2).
 const SQLCreateReleases = `CREATE TABLE IF NOT EXISTS Releases (
 	Id           INTEGER PRIMARY KEY AUTOINCREMENT,
 	Version      TEXT NOT NULL,
@@ -76,34 +84,37 @@ const SQLAddSourceColumn = "ALTER TABLE Releases ADD COLUMN Source TEXT DEFAULT 
 // SQL: enable foreign keys.
 const SQLEnableFK = "PRAGMA foreign_keys = ON"
 
-// SQL: repo operations.
+// SQL: repo operations (v15: Repo table, RepoId PK).
 const (
-	SQLUpsertRepo = `INSERT INTO Repos (Slug, RepoName, HttpsUrl, SshUrl, Branch, RelativePath, AbsolutePath, CloneInstruction, Notes)
+	SQLUpsertRepo = `INSERT INTO Repo (Slug, RepoName, HttpsUrl, SshUrl, Branch, RelativePath, AbsolutePath, CloneInstruction, Notes)
 		VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
 		ON CONFLICT(AbsolutePath) DO UPDATE SET
 			Slug=excluded.Slug, RepoName=excluded.RepoName, HttpsUrl=excluded.HttpsUrl,
 			SshUrl=excluded.SshUrl, Branch=excluded.Branch, RelativePath=excluded.RelativePath,
 			CloneInstruction=excluded.CloneInstruction, Notes=excluded.Notes, UpdatedAt=CURRENT_TIMESTAMP`
 
-	SQLSelectAllRepos = "SELECT Id, Slug, RepoName, HttpsUrl, SshUrl, Branch, RelativePath, AbsolutePath, CloneInstruction, Notes FROM Repos ORDER BY Slug"
+	SQLSelectAllRepos = "SELECT RepoId, Slug, RepoName, HttpsUrl, SshUrl, Branch, RelativePath, AbsolutePath, CloneInstruction, Notes FROM Repo ORDER BY Slug"
 
-	SQLSelectRepoBySlug = "SELECT Id, Slug, RepoName, HttpsUrl, SshUrl, Branch, RelativePath, AbsolutePath, CloneInstruction, Notes FROM Repos WHERE Slug = ?"
+	SQLSelectRepoBySlug = "SELECT RepoId, Slug, RepoName, HttpsUrl, SshUrl, Branch, RelativePath, AbsolutePath, CloneInstruction, Notes FROM Repo WHERE Slug = ?"
 
-	SQLSelectRepoByPath = "SELECT Id, Slug, RepoName, HttpsUrl, SshUrl, Branch, RelativePath, AbsolutePath, CloneInstruction, Notes FROM Repos WHERE AbsolutePath = ?"
+	SQLSelectRepoByPath = "SELECT RepoId, Slug, RepoName, HttpsUrl, SshUrl, Branch, RelativePath, AbsolutePath, CloneInstruction, Notes FROM Repo WHERE AbsolutePath = ?"
 )
 
 // SQL: upsert by AbsolutePath (spec requirement).
-const SQLUpsertRepoByPath = `INSERT INTO Repos (Slug, RepoName, HttpsUrl, SshUrl, Branch, RelativePath, AbsolutePath, CloneInstruction, Notes)
+const SQLUpsertRepoByPath = `INSERT INTO Repo (Slug, RepoName, HttpsUrl, SshUrl, Branch, RelativePath, AbsolutePath, CloneInstruction, Notes)
 	VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
 	ON CONFLICT(AbsolutePath) DO UPDATE SET
 		Slug=excluded.Slug, RepoName=excluded.RepoName, HttpsUrl=excluded.HttpsUrl,
 		SshUrl=excluded.SshUrl, Branch=excluded.Branch, RelativePath=excluded.RelativePath,
 		CloneInstruction=excluded.CloneInstruction, Notes=excluded.Notes, UpdatedAt=CURRENT_TIMESTAMP`
 
-// SQL: create unique index on AbsolutePath for upsert-by-path.
-const SQLCreateAbsPathIndex = "CREATE UNIQUE INDEX IF NOT EXISTS idx_Repos_AbsolutePath ON Repos(AbsolutePath)"
+// SQL: create unique index on AbsolutePath for upsert-by-path (v15: IdxRepo_AbsolutePath).
+const SQLCreateAbsPathIndex = "CREATE UNIQUE INDEX IF NOT EXISTS IdxRepo_AbsolutePath ON Repo(AbsolutePath)"
 
-// SQL: group operations.
+// SQL: drop the legacy index name from pre-v15 installs.
+const SQLDropLegacyAbsPathIndex = "DROP INDEX IF EXISTS idx_Repos_AbsolutePath"
+
+// SQL: group operations (still on legacy Groups table — renamed in Phase 1.2).
 const (
 	SQLInsertGroup = "INSERT INTO Groups (Name, Description, Color) VALUES (?, ?, ?)"
 
@@ -113,18 +124,18 @@ const (
 
 	SQLDeleteGroup = "DELETE FROM Groups WHERE Name = ?"
 
-	SQLInsertGroupRepo = "INSERT OR IGNORE INTO GroupRepos (GroupId, RepoId) VALUES (?, ?)"
+	SQLInsertGroupRepo = "INSERT OR IGNORE INTO GroupRepo (GroupId, RepoId) VALUES (?, ?)"
 
-	SQLDeleteGroupRepo = "DELETE FROM GroupRepos WHERE GroupId = ? AND RepoId = ?"
+	SQLDeleteGroupRepo = "DELETE FROM GroupRepo WHERE GroupId = ? AND RepoId = ?"
 
-	SQLSelectGroupRepos = `SELECT r.Id, r.Slug, r.RepoName, r.HttpsUrl, r.SshUrl, r.Branch,
+	SQLSelectGroupRepos = `SELECT r.RepoId, r.Slug, r.RepoName, r.HttpsUrl, r.SshUrl, r.Branch,
 		r.RelativePath, r.AbsolutePath, r.CloneInstruction, r.Notes
-		FROM Repos r JOIN GroupRepos gr ON r.Id = gr.RepoId WHERE gr.GroupId = ? ORDER BY r.Slug`
+		FROM Repo r JOIN GroupRepo gr ON r.RepoId = gr.RepoId WHERE gr.GroupId = ? ORDER BY r.Slug`
 
-	SQLCountGroupRepos = "SELECT COUNT(*) FROM GroupRepos WHERE GroupId = ?"
+	SQLCountGroupRepos = "SELECT COUNT(*) FROM GroupRepo WHERE GroupId = ?"
 )
 
-// SQL: release operations.
+// SQL: release operations (still on legacy Releases table — renamed in Phase 1.2).
 const (
 	SQLUpsertRelease = `INSERT INTO Releases (Version, Tag, Branch, SourceBranch, CommitSha, Changelog, Notes, Draft, PreRelease, IsLatest, Source, CreatedAt)
 		VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
@@ -146,9 +157,11 @@ const (
 
 // SQL: reset operations.
 const (
-	SQLDropGroupRepos = "DROP TABLE IF EXISTS GroupRepos"
+	SQLDropGroupRepo  = "DROP TABLE IF EXISTS GroupRepo"
+	SQLDropGroupRepos = "DROP TABLE IF EXISTS GroupRepos" // legacy
 	SQLDropGroups     = "DROP TABLE IF EXISTS Groups"
-	SQLDropRepos      = "DROP TABLE IF EXISTS Repos"
+	SQLDropRepo       = "DROP TABLE IF EXISTS Repo"
+	SQLDropRepos      = "DROP TABLE IF EXISTS Repos" // legacy, kept for migrateLegacyIDs
 	SQLDropReleases   = "DROP TABLE IF EXISTS Releases"
 )
 
@@ -169,4 +182,12 @@ const (
 	ErrDBGroupExists   = "group already exists: %s"
 	ErrDBReleaseUpsert = "failed to upsert release: %v"
 	ErrDBReleaseQuery  = "failed to query releases: %v"
+)
+
+// Phase 1 v15 migration messages.
+const (
+	MsgV15RepoMigrationStart = "→ Migrating database to v15 schema (Repos → Repo)..."
+	MsgV15RepoMigrationDone  = "✓ Migrated Repos → Repo (RepoId PK). Existing data preserved."
+	ErrV15RepoMigration      = "v15 Repo migration failed: %v"
+	ErrV15RepoCountMismatch  = "v15 Repo migration count mismatch: old=%d new=%d"
 )

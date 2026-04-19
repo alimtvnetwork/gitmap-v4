@@ -12,18 +12,18 @@ const (
 	SubCmdAliasSug  = "suggest"
 )
 
-// Alias table name.
+// Alias table name (still legacy plural — renamed in Phase 1.2).
 const TableAliases = "Aliases"
 
-// SQL: create Aliases table.
+// SQL: create Aliases table. FK now references the v15 Repo(RepoId).
 const SQLCreateAliases = `CREATE TABLE IF NOT EXISTS Aliases (
 	Id        INTEGER PRIMARY KEY AUTOINCREMENT,
 	Alias     TEXT NOT NULL UNIQUE,
-	RepoId    INTEGER NOT NULL REFERENCES Repos(Id) ON DELETE CASCADE,
+	RepoId    INTEGER NOT NULL REFERENCES Repo(RepoId) ON DELETE CASCADE,
 	CreatedAt TEXT DEFAULT CURRENT_TIMESTAMP
 )`
 
-// SQL: alias operations.
+// SQL: alias operations. Joins now hit Repo.RepoId per v15.
 const (
 	SQLInsertAlias = `INSERT INTO Aliases (Alias, RepoId) VALUES (?, ?)`
 
@@ -42,16 +42,16 @@ const (
 
 	SQLSelectAliasWithRepo = `SELECT a.Id, a.Alias, a.RepoId, a.CreatedAt,
 		r.AbsolutePath, r.Slug
-		FROM Aliases a JOIN Repos r ON a.RepoId = r.Id
+		FROM Aliases a JOIN Repo r ON a.RepoId = r.RepoId
 		WHERE a.Alias = ?`
 
 	SQLSelectAllAliasesWithRepo = `SELECT a.Id, a.Alias, a.RepoId, a.CreatedAt,
 		r.AbsolutePath, r.Slug
-		FROM Aliases a JOIN Repos r ON a.RepoId = r.Id
+		FROM Aliases a JOIN Repo r ON a.RepoId = r.RepoId
 		ORDER BY a.Alias`
 
-	SQLSelectUnaliasedRepos = `SELECT r.Id, r.Slug, r.RepoName
-		FROM Repos r LEFT JOIN Aliases a ON r.Id = a.RepoId
+	SQLSelectUnaliasedRepos = `SELECT r.RepoId, r.Slug, r.RepoName
+		FROM Repo r LEFT JOIN Aliases a ON r.RepoId = a.RepoId
 		WHERE a.Id IS NULL ORDER BY r.Slug`
 )
 

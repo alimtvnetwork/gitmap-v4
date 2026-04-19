@@ -69,14 +69,22 @@ func openDBAt(dbPath string) (*DB, error) {
 }
 
 // Migrate creates all required tables if they don't exist.
+//
+// Order: legacy UUID migration → v15 Repo rename → standard CREATE TABLE pass
+// → ALTER-based column additions → seed data. The v15 step is idempotent and
+// a no-op on fresh installs.
 func (db *DB) Migrate() error {
 	db.migrateLegacyIDs()
 
+	if err := db.migrateV15Repo(); err != nil {
+		return fmt.Errorf(constants.ErrV15RepoMigration, err)
+	}
+
 	statements := []string{
-		constants.SQLCreateRepos,
+		constants.SQLCreateRepo,
 		constants.SQLCreateAbsPathIndex,
 		constants.SQLCreateGroups,
-		constants.SQLCreateGroupRepos,
+		constants.SQLCreateGroupRepo,
 		constants.SQLCreateReleases,
 		constants.SQLCreateCommitTemplates,
 		constants.SQLCreateAmendments,
@@ -216,7 +224,8 @@ func (db *DB) Reset() error {
 		constants.SQLDropCSharpProjectMeta,
 		constants.SQLDropDetectedProjects,
 		constants.SQLDropProjectTypes,
-		constants.SQLDropGroupRepos,
+		constants.SQLDropGroupRepo,
+		constants.SQLDropGroupRepos, // legacy plural — safe even if absent
 		constants.SQLDropGroups,
 		constants.SQLDropReleases,
 		constants.SQLDropAmendments,
@@ -228,7 +237,8 @@ func (db *DB) Reset() error {
 		constants.SQLDropTempReleases,
 		constants.SQLDropZipGroups,
 		constants.SQLDropInstalledTools,
-		constants.SQLDropRepos,
+		constants.SQLDropRepo,
+		constants.SQLDropRepos, // legacy plural — safe even if absent
 	}
 
 	for _, stmt := range drops {
