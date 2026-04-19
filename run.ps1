@@ -623,9 +623,10 @@ function Resolve-DeployTarget {
             $activeDir = Split-Path $resolvedActive -Parent
             $activeDirName = Split-Path $activeDir -Leaf
 
-            # The binary lives in <deploy-target>/gitmap/gitmap.exe
-            # So the deploy target is the parent of the gitmap/ folder
-            if ($activeDirName -eq "gitmap") {
+            # The binary lives in <deploy-target>/gitmap-cli/gitmap.exe (v3.6.0+),
+            # or in legacy <deploy-target>/gitmap/gitmap.exe (pre-v3.6.0).
+            # Either way, the deploy target is the parent of that subfolder.
+            if ($activeDirName -eq "gitmap-cli" -or $activeDirName -eq "gitmap") {
                 $deployTarget = Split-Path $activeDir -Parent
                 Write-Info "Deploy target: detected from PATH -> $deployTarget"
 
@@ -948,8 +949,9 @@ function Remove-DriveRootShim {
     if (-not (Test-Path $shimPath)) { return 0 }
 
     $shimDir = Split-Path $shimPath -Parent
-    # Safety: only remove if it sits at the literal drive root and not inside a gitmap/ folder.
-    if ((Split-Path $shimDir -Leaf) -eq "gitmap") {
+    # Safety: only remove if it sits at the literal drive root and not inside a gitmap-cli/ or legacy gitmap/ folder.
+    $shimDirName = Split-Path $shimDir -Leaf
+    if ($shimDirName -eq "gitmap-cli" -or $shimDirName -eq "gitmap") {
         return 0
     }
 
