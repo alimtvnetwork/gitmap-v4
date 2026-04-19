@@ -16,6 +16,6 @@ func logIndent(prefix, format string, a ...any) {
 }
 
 // logErr writes a structured error line to stderr.
-func logErr(prefix, format string, a ...any) {
-	fmt.Fprintf(os.Stderr, "%s %s\n", prefix, fmt.Sprintf(format, a...))
+func logErr(prefix, msg string) {
+	fmt.Fprintf(os.Stderr, "%s %s\n", prefix, msg)
 }

@@ -47,7 +47,7 @@ func commitAndPushOne(ep Endpoint, otherDisp string, opts Options) error {
 	msg := fmt.Sprintf(opts.CommitMsgFmt, otherDisp)
 	sha, err := AddCommitPush(ep.WorkingDir, msg, !opts.NoPush)
 	if err != nil {
-		logErr(opts.LogPrefix, constants.ErrMMPushFailFmt, sha)
+		logErr(opts.LogPrefix, fmt.Sprintf(constants.ErrMMPushFailFmt, sha))
 
 		return err
 	}

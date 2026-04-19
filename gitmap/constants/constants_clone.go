@@ -33,3 +33,11 @@ const (
 	FlagStopOnFail     = "stop-on-fail"
 	FlagDescStopOnFail = "Stop batch operation after first failure"
 )
+
+// Clone shorthands — short aliases for `gitmap clone <source>` that
+// expand to the default scan output files (json/csv/text).
+const (
+	ShorthandJSON = "json"
+	ShorthandCSV  = "csv"
+	ShorthandText = "text"
+)
