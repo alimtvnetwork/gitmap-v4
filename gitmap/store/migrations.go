@@ -16,8 +16,6 @@ import (
 	"fmt"
 	"os"
 	"strings"
-
-	"github.com/user/gitmap/constants"
 )
 
 // MigrationReport summarises a single Migrate() run for `gitmap db-migrate`.
