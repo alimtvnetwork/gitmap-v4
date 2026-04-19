@@ -1,10 +1,10 @@
 # Memory: features/v15-rename-progress
 Updated: now (Malaysia, UTC+8)
 
-Phase 1 of the v15 database naming alignment is in flight (DB schema migration only, NO new commands or features yet).
+**Phase 1 of the v15 database naming alignment is COMPLETE as of v3.5.0.** All 22 SQLite tables follow the strict v15 convention. No new commands or features were added — pure naming alignment.
 
 ## Spec
-PascalCase + **singular** table names + `{TableName}Id` primary keys + FKs match referenced PK name. Per https://github.com/alimtvnetwork/coding-guidelines-v15/blob/main/spec/04-database-conventions/01-naming-conventions.md.
+PascalCase + **singular** table names + `{TableName}Id` primary keys + FKs match referenced PK name + `IsX` boolean prefix + abbreviations as words. Per https://github.com/alimtvnetwork/coding-guidelines-v15/blob/main/spec/04-database-conventions/01-naming-conventions.md.
 
 ## Phase 1 sub-phase status
 
@@ -15,7 +15,13 @@ PascalCase + **singular** table names + `{TableName}Id` primary keys + FKs match
 | 1.3 | `Amendments` → `Amendment`, `CommitTemplates` → `CommitTemplate`, `Settings` → `Setting`, `SSHKeys` → `SshKey`, `InstalledTools` → `InstalledTool`, `TempReleases` → `TempRelease` | DONE (v3.3.0) |
 | 1.4 | ZipGroup family + Project family (incl. `CSharp` → `Csharp` strict v15) + Task family + History tables | DONE (v3.4.0) |
 | 1.5 | Boolean prefix fixes (`Release.Draft` → `IsDraft`, `Release.PreRelease` → `IsPreRelease`) — full IsX consistency across DB, model, ReleaseMeta, Options, with backward-compat JSON aliases | DONE (v3.5.0) |
-| 1.6 | Update spec/12, regenerate both ERDs, bump CHANGELOG entry, update mem://index core | TODO |
+| 1.6 | Update spec/12, regenerate ERD, bump CHANGELOG entry, update mem://index core | DONE (v3.5.0) |
+
+## Phase 1.6 — final wrap-up (this turn)
+- **Regenerated `spec/01-app/gitmap-database-erd.mmd`** to v15 names: every table singular, every PK is `{TableName}Id`, FKs match (`GoRunnableFile.GoProjectMetadataId`, `CsharpProjectFile.CsharpProjectMetadataId`, etc.), `Release` has `IsDraft`/`IsPreRelease`/`IsLatest`, `SshKey`/`Csharp*` reflect abbreviation rule.
+- **Updated `spec/12-consolidated-guidelines/11-database.md`** Schema Conventions table — singular names, `{TableName}Id` PKs, IsX boolean prefix row, reserved-word quoting row, abbreviation rules row, link to upstream v15 spec.
+- **Added `## v3.5.0` CHANGELOG entry** covering Phases 1.1–1.5: full table rename list, column rename summary, migration safety contract (5 points), Go-side propagation, JSON backward-compat note for `.gitmap/release/*.json`, CLI `--draft` flag retained.
+- **Updated `mem://index.md` core**: replaced old "PascalCase, INTEGER PRIMARY KEY AUTOINCREMENT" line with v15 spec one-liner; bumped current version to v3.5.0; added a top-of-list memory pointer to this file.
 
 ## Phase 1.2 + 1.3 — what changed in this turn
 

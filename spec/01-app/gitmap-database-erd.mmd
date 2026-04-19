@@ -1,9 +1,9 @@
 ---
-title: gitmap Database ERD (v2.75.0)
+title: gitmap Database ERD (v3.5.0 — v15 naming)
 ---
 erDiagram
-    Repos {
-        INTEGER Id PK
+    Repo {
+        INTEGER RepoId PK
         TEXT Slug
         TEXT RepoName
         TEXT HttpsUrl
@@ -19,21 +19,21 @@ erDiagram
         TEXT UpdatedAt
     }
 
-    Groups {
-        INTEGER Id PK
+    Group {
+        INTEGER GroupId PK
         TEXT Name UK
         TEXT Description
         TEXT Color
         TEXT CreatedAt
     }
 
-    GroupRepos {
+    GroupRepo {
         INTEGER GroupId FK
         INTEGER RepoId FK
     }
 
     RepoVersionHistory {
-        INTEGER Id PK
+        INTEGER RepoVersionHistoryId PK
         INTEGER RepoId FK
         TEXT FromVersionTag
         INTEGER FromVersionNum
@@ -43,8 +43,8 @@ erDiagram
         TEXT CreatedAt
     }
 
-    Releases {
-        INTEGER Id PK
+    Release {
+        INTEGER ReleaseId PK
         TEXT Version
         TEXT Tag UK
         TEXT Branch
@@ -52,15 +52,15 @@ erDiagram
         TEXT CommitSha
         TEXT Changelog
         TEXT Notes
-        INTEGER Draft
-        INTEGER PreRelease
+        INTEGER IsDraft
+        INTEGER IsPreRelease
         INTEGER IsLatest
         TEXT Source
         TEXT CreatedAt
     }
 
-    TempReleases {
-        INTEGER Id PK
+    TempRelease {
+        INTEGER TempReleaseId PK
         TEXT Branch UK
         TEXT Version
         TEXT CommitSha
@@ -68,7 +68,7 @@ erDiagram
     }
 
     CommandHistory {
-        INTEGER Id PK
+        INTEGER CommandHistoryId PK
         TEXT Command
         TEXT Alias
         TEXT Args
@@ -82,8 +82,8 @@ erDiagram
         TEXT CreatedAt
     }
 
-    Amendments {
-        INTEGER Id PK
+    Amendment {
+        INTEGER AmendmentId PK
         TEXT Branch
         TEXT FromCommit
         TEXT ToCommit
@@ -95,55 +95,55 @@ erDiagram
         TEXT CreatedAt
     }
 
-    CommitTemplates {
-        INTEGER Id PK
+    CommitTemplate {
+        INTEGER CommitTemplateId PK
         TEXT Kind
         TEXT Template
         TEXT CreatedAt
     }
 
-    Bookmarks {
-        INTEGER Id PK
+    Bookmark {
+        INTEGER BookmarkId PK
         TEXT Name UK
         TEXT Path
         TEXT CreatedAt
     }
 
-    Aliases {
-        INTEGER Id PK
+    Alias {
+        INTEGER AliasId PK
         TEXT Alias UK
         TEXT Command
         TEXT CreatedAt
     }
 
-    SSHKeys {
-        INTEGER Id PK
+    SshKey {
+        INTEGER SshKeyId PK
         TEXT Name UK
         TEXT Path
         TEXT CreatedAt
     }
 
-    Settings {
+    Setting {
         TEXT Key PK
         TEXT Value
     }
 
-    ProjectTypes {
-        INTEGER Id PK
+    ProjectType {
+        INTEGER ProjectTypeId PK
         TEXT Key UK
         TEXT Label
         TEXT Description
     }
 
-    DetectedProjects {
-        INTEGER Id PK
+    DetectedProject {
+        INTEGER DetectedProjectId PK
         INTEGER RepoId FK
         INTEGER ProjectTypeId FK
         TEXT DetectedAt
     }
 
     GoProjectMetadata {
-        INTEGER Id PK
+        INTEGER GoProjectMetadataId PK
         INTEGER RepoId FK
         TEXT GoVersion
         TEXT ModulePath
@@ -151,14 +151,14 @@ erDiagram
         TEXT DetectedAt
     }
 
-    GoRunnableFiles {
-        INTEGER Id PK
-        INTEGER MetadataId FK
+    GoRunnableFile {
+        INTEGER GoRunnableFileId PK
+        INTEGER GoProjectMetadataId FK
         TEXT FilePath
     }
 
-    CSharpProjectMeta {
-        INTEGER Id PK
+    CsharpProjectMetadata {
+        INTEGER CsharpProjectMetadataId PK
         INTEGER RepoId FK
         TEXT Framework
         TEXT Language
@@ -166,49 +166,49 @@ erDiagram
         TEXT DetectedAt
     }
 
-    CSharpProjectFiles {
-        INTEGER Id PK
-        INTEGER MetaId FK
+    CsharpProjectFile {
+        INTEGER CsharpProjectFileId PK
+        INTEGER CsharpProjectMetadataId FK
         TEXT FilePath
         TEXT FileName
     }
 
-    CSharpKeyFiles {
-        INTEGER Id PK
-        INTEGER MetaId FK
+    CsharpKeyFile {
+        INTEGER CsharpKeyFileId PK
+        INTEGER CsharpProjectMetadataId FK
         TEXT FileType
         TEXT FilePath
     }
 
-    InstalledTools {
-        INTEGER Id PK
+    InstalledTool {
+        INTEGER InstalledToolId PK
         TEXT Tool UK
         TEXT Version
         TEXT Path
         TEXT InstalledAt
     }
 
-    ZipGroups {
-        INTEGER Id PK
+    ZipGroup {
+        INTEGER ZipGroupId PK
         TEXT Name UK
         TEXT Description
         TEXT CreatedAt
     }
 
-    ZipGroupItems {
-        INTEGER GroupId FK
+    ZipGroupItem {
+        INTEGER ZipGroupId FK
         TEXT RepoPath
         TEXT RelativePath
         TEXT FullPath
     }
 
     TaskType {
-        INTEGER Id PK
+        INTEGER TaskTypeId PK
         TEXT Name UK
     }
 
     PendingTask {
-        INTEGER Id PK
+        INTEGER PendingTaskId PK
         INTEGER TaskTypeId FK
         TEXT TargetPath
         TEXT WorkingDir
@@ -220,7 +220,7 @@ erDiagram
     }
 
     CompletedTask {
-        INTEGER Id PK
+        INTEGER CompletedTaskId PK
         INTEGER OriginalTaskId
         INTEGER TaskTypeId FK
         TEXT TargetPath
@@ -231,16 +231,16 @@ erDiagram
         TEXT Result
     }
 
-    Repos ||--o{ GroupRepos : "has groups"
-    Groups ||--o{ GroupRepos : "contains repos"
-    Repos ||--o{ RepoVersionHistory : "version transitions"
-    Repos ||--o{ DetectedProjects : "project types"
-    ProjectTypes ||--o{ DetectedProjects : "categorizes"
-    Repos ||--o{ GoProjectMetadata : "Go metadata"
-    GoProjectMetadata ||--o{ GoRunnableFiles : "runnable files"
-    Repos ||--o{ CSharpProjectMeta : "C# metadata"
-    CSharpProjectMeta ||--o{ CSharpProjectFiles : "project files"
-    CSharpProjectMeta ||--o{ CSharpKeyFiles : "key files"
-    ZipGroups ||--o{ ZipGroupItems : "contains items"
+    Repo ||--o{ GroupRepo : "has groups"
+    Group ||--o{ GroupRepo : "contains repos"
+    Repo ||--o{ RepoVersionHistory : "version transitions"
+    Repo ||--o{ DetectedProject : "project types"
+    ProjectType ||--o{ DetectedProject : "categorizes"
+    Repo ||--o{ GoProjectMetadata : "Go metadata"
+    GoProjectMetadata ||--o{ GoRunnableFile : "runnable files"
+    Repo ||--o{ CsharpProjectMetadata : "C# metadata"
+    CsharpProjectMetadata ||--o{ CsharpProjectFile : "project files"
+    CsharpProjectMetadata ||--o{ CsharpKeyFile : "key files"
+    ZipGroup ||--o{ ZipGroupItem : "contains items"
     TaskType ||--o{ PendingTask : "categorizes"
     TaskType ||--o{ CompletedTask : "categorizes"

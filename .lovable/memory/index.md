@@ -1,6 +1,3 @@
-# Memory: index.md
-Updated: now
-
 # Project Memory
 
 ## Core
@@ -11,13 +8,14 @@ No magic strings. Centralize in constants. All CLI IDs must be exclusively in `c
 Windows-first platform development strategy. Scripts must handle Windows encoding (UTF-8 BOM).
 Go v1.24.13. golangci-lint pinned to v1.64.8, govulncheck pinned to v1.1.4.
 SQLite connection pooling restricted to `SetMaxOpenConns(1)`.
-Database schema follows v15: PascalCase + **singular** table names + `{TableName}Id` PKs (Phase 1.1 in flight — Repo/RepoId live, others pending).
+v15 DB schema: PascalCase + singular table names + `{TableName}Id` PKs + FKs match referenced PK + `IsX` boolean prefix + abbreviations as words (`SshKey`, `Csharp*`). SQLite reserved word `Group` double-quoted in DDL/DML.
 Unified `.gitmap/` directory structure at repository root for all artifacts.
 Clone-next flattens by default (v2.75.0+): clones into base name folder, tracks versions in RepoVersionHistory.
 Completion generator uses marker-comment opt-in (v3.0.0+): `// gitmap:cmd top-level` on const block, `// gitmap:cmd skip` per spec. CI `generate-check` enforces drift.
-Current version: v3.5.0.
+Current version: v3.5.0 (Phase 1 v15 rename complete — all 22 tables migrated).
 
 ## Memories
+- [v15 Rename Progress](mem://features/v15-rename-progress) — Phase 1 complete: all 22 tables singular + {Table}Id PKs + IsDraft/IsPreRelease + CSharp→Csharp (v3.5.0)
 - [Code Constraints](mem://style/code-constraints) — Strict rules for code style, structure, and pull requests
 - [Code Quality Process](mem://style/code-quality-improvement-process) — Architectural principles and resilience patterns
 - [README Branding](mem://style/readme-branding) — Strict layout and linking requirements for the project author section
@@ -31,7 +29,6 @@ Current version: v3.5.0.
 - [Release Alias](mem://features/release-alias) — gitmap as / release-alias (ra) / release-alias-pull (rap) with auto-stash labeled by alias-version-unixts, label-match pop for concurrent safety (v3.0.0)
 - [Self Install Uninstall](mem://features/self-install-uninstall) — gitmap self-install / self-uninstall manage the binary itself (separate from third-party install/uninstall). Embedded scripts via go:embed, Windows handoff, marker-block PATH cleanup
 - [Marker Comments](mem://features/marker-comments) — Decentralized opt-in for completion generator: `// gitmap:cmd top-level` + `// gitmap:cmd skip`, CI drift check enforces sync (v3.0.0)
-- [v15 Rename Progress](mem://features/v15-rename-progress) — Phase 1 v15 DB rename in flight; Phase 1.1 (Repo + GroupRepo + RepoId PK) DONE in sandbox, build verification pending; Phases 1.2–1.6 + Phase 2 (ScanFolder + find-next) + Phase 3 (pull + cn next all) outstanding
 - [Database Architect](mem://tech/database-architecture) — Idempotent SQLite migrations, PascalCase schema helpers
 - [Database Constraints](mem://tech/database-constraints) — Recursive reconciliation pattern, explicitly re-query database IDs
 - [Database Location](mem://tech/database-location) — SQLite state anchored to binary execution path via filepath.EvalSymlinks
