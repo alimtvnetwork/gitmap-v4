@@ -18,6 +18,7 @@ package store
 import (
 	"fmt"
 	"os"
+	"strings"
 )
 
 // v15RebuildSpec describes one legacy-plural → v15-singular table rebuild.
@@ -51,6 +52,13 @@ func (db *DB) runV15Rebuild(spec v15RebuildSpec) error {
 	if spec.StartMsg != "" {
 		fmt.Println(spec.StartMsg)
 	}
+
+	// Adapt the SELECT list when the legacy `Id` column has already been
+	// renamed to `{OldTable}Id` (e.g. on a database first created at v3.5.0+
+	// where the standard CREATE TABLE pass produced the v15 schema before
+	// this rebuild ran). Without this the INSERT ... SELECT fails with
+	// "no such column: Id".
+	spec = adaptOldColumnList(db, spec)
 
 	oldCount, err := db.countRows(spec.OldTable)
 	if err != nil {
@@ -110,4 +118,58 @@ func (db *DB) execV15Rebuild(spec v15RebuildSpec) error {
 	}
 
 	return nil
+}
+
+// adaptOldColumnList rewrites the leading `Id` token in spec.OldColumnList to
+// `{OldTable}Id` when the existing OldTable no longer has an `Id` column but
+// already exposes the v15 PK column. This handles two scenarios:
+//
+//  1. Same-name PK-rename rebuilds (e.g. GoProjectMetadata,  PendingTask)
+//     where the standard CREATE TABLE IF NOT EXISTS pass in Migrate() may
+//     have already produced the v15-shaped table on a fresh-since-v3.5.0
+//     install.
+//  2. Idempotent re-runs against a partially-migrated database.
+//
+// The function is a no-op when the legacy `Id` column is still present, so it
+// never breaks the genuine legacy → v15 migration path.
+func adaptOldColumnList(db *DB, spec v15RebuildSpec) v15RebuildSpec {
+	hasLegacyID := db.columnExists(spec.OldTable, "Id")
+	if hasLegacyID {
+		return spec
+	}
+
+	v15PK := derivePKColumnName(spec)
+	if v15PK == "" || !db.columnExists(spec.OldTable, v15PK) {
+		return spec
+	}
+
+	spec.OldColumnList = replaceLeadingIDToken(spec.OldColumnList, v15PK)
+
+	return spec
+}
+
+// derivePKColumnName returns the v15 PK column name for spec, derived from
+// the first token of NewColumnList. Returns "" if NewColumnList is empty.
+func derivePKColumnName(spec v15RebuildSpec) string {
+	first, _, found := strings.Cut(spec.NewColumnList, ",")
+	if !found {
+		first = spec.NewColumnList
+	}
+
+	return strings.TrimSpace(first)
+}
+
+// replaceLeadingIDToken swaps the first comma-separated token of list with
+// replacement, preserving the rest of the column list verbatim. When the
+// leading token is not exactly "Id", list is returned unchanged.
+func replaceLeadingIDToken(list, replacement string) string {
+	first, rest, found := strings.Cut(list, ",")
+	if strings.TrimSpace(first) != "Id" {
+		return list
+	}
+	if !found {
+		return replacement
+	}
+
+	return replacement + "," + rest
 }
