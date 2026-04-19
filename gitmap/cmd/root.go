@@ -11,6 +11,7 @@ import (
 // Run is the main entry point for the CLI.
 func Run() {
 	if len(os.Args) < 2 {
+		PrintBinaryLocations()
 		printUsage()
 		os.Exit(1)
 	}
