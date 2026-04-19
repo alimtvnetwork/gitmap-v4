@@ -129,22 +129,27 @@ const (
 	HelpSEOAuthorEmail = "  --author-email <e>  Git author email for commits"
 )
 
-// CommitTemplates table.
-const TableCommitTemplates = "CommitTemplates"
+// CommitTemplate table (v15: singular + CommitTemplateId PK).
+const TableCommitTemplate = "CommitTemplate"
 
-// CommitTemplates SQL.
-const SQLCreateCommitTemplates = `CREATE TABLE IF NOT EXISTS CommitTemplates (
-	Id        INTEGER PRIMARY KEY AUTOINCREMENT,
-	Kind      TEXT NOT NULL,
-	Template  TEXT NOT NULL,
-	CreatedAt TEXT NOT NULL DEFAULT (datetime('now'))
+// Legacy plural retained for migration detection.
+const LegacyTableCommitTemplates = "CommitTemplates"
+
+// SQL: create CommitTemplate table.
+const SQLCreateCommitTemplate = `CREATE TABLE IF NOT EXISTS CommitTemplate (
+	CommitTemplateId INTEGER PRIMARY KEY AUTOINCREMENT,
+	Kind             TEXT NOT NULL,
+	Template         TEXT NOT NULL,
+	CreatedAt        TEXT NOT NULL DEFAULT (datetime('now'))
 )`
 
+// SQL: commit-template operations (v15).
 const (
-	SQLInsertTemplate        = "INSERT INTO CommitTemplates (Kind, Template) VALUES (?, ?)"
-	SQLSelectTemplatesByKind = "SELECT Id, Kind, Template, CreatedAt FROM CommitTemplates WHERE Kind = ? ORDER BY CreatedAt"
-	SQLCountTemplates        = "SELECT COUNT(*) FROM CommitTemplates"
-	SQLDropCommitTemplates   = "DROP TABLE IF EXISTS CommitTemplates"
+	SQLInsertTemplate        = "INSERT INTO CommitTemplate (Kind, Template) VALUES (?, ?)"
+	SQLSelectTemplatesByKind = "SELECT CommitTemplateId, Kind, Template, CreatedAt FROM CommitTemplate WHERE Kind = ? ORDER BY CreatedAt"
+	SQLCountTemplates        = "SELECT COUNT(*) FROM CommitTemplate"
+	SQLDropCommitTemplate    = "DROP TABLE IF EXISTS CommitTemplate"
+	SQLDropCommitTemplates   = "DROP TABLE IF EXISTS CommitTemplates" // legacy
 )
 
 // Template kinds.
