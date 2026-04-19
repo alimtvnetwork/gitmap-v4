@@ -125,12 +125,15 @@
     background: hsl(142 71% 55% / 0.3);
     color: hsl(220 10% 95%);
   }
-  /* Code block text selection — always light text on green */
+  /* Code block text selection — bright, high-contrast highlight on dark terminal */
   pre ::selection,
   code ::selection,
-  .hljs ::selection {
-    background: hsl(142 65% 40% / 0.35);
+  .hljs ::selection,
+  pre::selection,
+  code::selection {
+    background: hsl(142 80% 70% / 0.55);
     color: hsl(0 0% 100%);
+    text-shadow: none;
   }
 }
 
