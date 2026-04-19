@@ -77,6 +77,23 @@ p
     Pulling my-api (main)...
     Already up to date.
 
+### Example 5: Parallel pull, only what's actually new
+
+First refresh the probe so `--only-available` has fresh data:
+
+    gitmap probe --all
+    gitmap pull --all --only-available --parallel 4
+
+**Output:**
+
+    [1/6] billing-svc (main)... updated (3 new commits)
+    [2/6] auth-gateway (main)... updated (1 new commit)
+    [3/6] payments-api (main)... updated (5 new commits)
+    [4/6] user-svc (develop)... updated (2 new commits)
+    [5/6] notification-svc (main)... updated (1 new commit)
+    [6/6] config-svc (main)... updated (4 new commits)
+    ✓ Pull complete: 6 succeeded, 0 failed (4-way parallel)
+
 ## See Also
 
 - [scan](scan.md) — Scan directories to populate the database
