@@ -63,7 +63,7 @@ func dispatchData(command string) bool {
 
 		return true
 	}
-	if command == constants.CmdCDCmd || command == constants.CmdCDCmdAlias {
+	if command == constants.CmdCD || command == constants.CmdCDAlias {
 		runCD(os.Args[2:])
 
 		return true
