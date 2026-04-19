@@ -93,7 +93,7 @@ func (db *DB) Migrate() error {
 		constants.SQLCreateCommitTemplates,
 		constants.SQLCreateAmendments,
 		constants.SQLCreateCommandHistory,
-		constants.SQLCreateBookmarks,
+		// Bookmark moved below to keep the v15 group together.
 		constants.SQLCreateProjectTypes,
 		constants.SQLCreateDetectedProjects,
 		constants.SQLCreateGoProjectMetadata,
