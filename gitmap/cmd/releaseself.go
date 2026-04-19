@@ -34,7 +34,7 @@ func executeSelfRelease(version, assets, commit, branch, bump, notes, targets st
 		ZipGroups:  zipGroups,
 		ZipItems:   zipItems,
 		BundleName: bundleName,
-		Draft:      draft, DryRun: dryRun,
+		IsDraft:    draft, DryRun: dryRun,
 		Verbose:   verbose,
 		Compress:  compress,
 		Checksums: checksums,

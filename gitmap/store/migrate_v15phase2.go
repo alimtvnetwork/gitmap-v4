@@ -34,8 +34,8 @@ func (db *DB) migrateV15Phase2() error {
 			NewTable:      "Release",
 			NewCreateSQL:  constants.SQLCreateRelease,
 			OldColumnList: "Id, Version, Tag, Branch, SourceBranch, CommitSha, Changelog, Notes, Draft, PreRelease, IsLatest, Source, CreatedAt",
-			NewColumnList: "ReleaseId, Version, Tag, Branch, SourceBranch, CommitSha, Changelog, Notes, Draft, PreRelease, IsLatest, Source, CreatedAt",
-			StartMsg:      "→ Migrating Releases → Release (ReleaseId PK)...",
+			NewColumnList: "ReleaseId, Version, Tag, Branch, SourceBranch, CommitSha, Changelog, Notes, IsDraft, IsPreRelease, IsLatest, Source, CreatedAt",
+			StartMsg:      "→ Migrating Releases → Release (ReleaseId PK + IsDraft/IsPreRelease)...",
 			DoneMsg:       "✓ Migrated Releases → Release.",
 		},
 		{

@@ -132,8 +132,8 @@ func buildReleaseMeta(v Version, branchName, tag, sourceName, commit string, ass
 		Notes:             opts.Notes,
 		ZipGroups:         zipGroups,
 		ZipGroupChecksums: checksums,
-		Draft:             opts.Draft,
-		PreRelease:        v.IsPreRelease(),
+		IsDraft:           opts.IsDraft,
+		IsPreRelease:      v.IsPreRelease(),
 		CreatedAt:         time.Now().UTC().Format(time.RFC3339),
 		IsLatest:          false,
 	}

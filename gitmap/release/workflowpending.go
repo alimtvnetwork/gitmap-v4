@@ -52,9 +52,9 @@ func isMetaPending(meta ReleaseMeta, branchSet map[string]bool) bool {
 }
 
 // releasePendingFromMetadata creates branch+tag from stored commit SHA.
-func releasePendingFromMetadata(pending []ReleaseMeta, assetsPath, notes string, draft, dryRun bool) error {
+func releasePendingFromMetadata(pending []ReleaseMeta, assetsPath, notes string, isDraft, dryRun bool) error {
 	for _, meta := range pending {
-		err := releaseFromMetadata(meta, assetsPath, notes, draft, dryRun)
+		err := releaseFromMetadata(meta, assetsPath, notes, isDraft, dryRun)
 		if err != nil {
 			fmt.Printf(constants.MsgReleasePendingFailed, meta.Tag, err)
 			continue
@@ -65,7 +65,7 @@ func releasePendingFromMetadata(pending []ReleaseMeta, assetsPath, notes string,
 }
 
 // releaseFromMetadata creates a release branch+tag from a metadata file's commit SHA.
-func releaseFromMetadata(meta ReleaseMeta, assetsPath, notes string, draft, dryRun bool) error {
+func releaseFromMetadata(meta ReleaseMeta, assetsPath, notes string, isDraft, dryRun bool) error {
 	v, err := Parse(meta.Tag)
 	if err != nil {
 		return fmt.Errorf("invalid version in metadata: %s", meta.Tag)
@@ -108,7 +108,7 @@ func releaseFromMetadata(meta ReleaseMeta, assetsPath, notes string, draft, dryR
 	}
 	fmt.Printf(constants.MsgReleaseTag, tag)
 
-	opts := Options{Assets: assetsPath, Notes: notes, Draft: draft, SkipMeta: true}
+	opts := Options{Assets: assetsPath, Notes: notes, IsDraft: isDraft, SkipMeta: true}
 
 	return pushAndFinalize(v, branchName, tag, "metadata:"+meta.Commit, opts)
 }
