@@ -27,7 +27,7 @@ const (
 	CmdExec                  = "exec"
 	CmdExecAlias             = "x"
 	CmdRelease               = "release"
-	CmdReleaseAlias          = "r"
+	CmdReleaseShort          = "r"
 	CmdReleaseBranch         = "release-branch"
 	CmdReleaseBranchAlias    = "rb"
 	CmdReleasePending        = "release-pending"
