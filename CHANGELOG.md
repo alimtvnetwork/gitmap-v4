@@ -1,5 +1,26 @@
 # Changelog
 
+## v3.11.0 — (2026-04-19) — Constants hygiene + Phase 1.4 migration fix
+
+### Fixed
+
+- **v15 Phase 1.4 migration** — `GoProjectMetadata` and `PendingTask` rebuilds failed on databases first created at v3.5.0+ with `SQL logic error: no such column: Id`. Both tables were already singular before v15, so the canonical `CREATE TABLE IF NOT EXISTS` pass produced the v15-shaped table (with `{Table}Id` PK) before the rebuild ran, leaving no `Id` column to SELECT. Added `adaptOldColumnList()` in `gitmap/store/migrate_v15rebuild.go` that detects the existing PK shape via `columnExists()` and rewrites the leading `Id` token in `OldColumnList` to `{Table}Id` when needed. Idempotent and a no-op for genuine legacy → v15 paths.
+- **`go vet` `non-constant format string`** in `gitmap/movemerge/finalize.go:50` — `logErr` was inferred as a printf-style wrapper. Reshaped `logErr(prefix, msg string)` to accept a pre-formatted message and moved `fmt.Sprintf(constants.ErrMMPushFailFmt, sha)` to the call site so the printf-check never triggers.
+- **Unused-import build break** in `gitmap/store/migrations.go` — removed orphaned `"github.com/user/gitmap/constants"` import left over from a prior refactor.
+- **`CmdReleaseAlias` Go redeclaration** — same name was bound to `"r"` (in `constants_cli.go`) and `"release-alias"` (in `constants_releasealias.go`). Renamed the `constants_cli.go` constant to `CmdReleaseShort` so the `release-alias` family owns `CmdReleaseAlias` exclusively.
+- **`cd` / `go` constant collision** — `CmdCDCmd` (`"cd"`) and `CmdCDCmdAlias` (`"go"`) in `constants_cli.go` shadowed `CmdCD` / `CmdCDAlias` in `constants_cd.go`. Removed the duplicates and repointed `gitmap/cmd/rootdata.go` dispatch at the canonical constants.
+
+### Added
+
+- **CI uniqueness test** — `gitmap/cmd/cmdconstants_unique_test.go` (+ helpers in `cmdconstants_unique_helpers_test.go`) parses every `gitmap/constants/constants_*.go`, applies the same `gitmap:cmd top-level` / `gitmap:cmd skip` markers used by `completion/internal/gencommands`, and fails the test suite when two distinct `Cmd*` identifiers claim the same string value. Catches future redeclarations and dispatch shadowing at CI time before they reach the build phase.
+- **Parallel pull worker pool** (`gitmap/cmd/pullparallel.go`) — buffered-channel pool with `sync.WaitGroup` and a mutex around the non-thread-safe `BatchProgress` tracker. Opt-in via `--parallel <N>`.
+- **`--only-available` pull pre-filter** (`gitmap/cmd/pullfilter.go`) — intersects the target repo list with `FindNext` results so `gitmap pull --only-available` skips repos that have no new tags. Fail-open: falls back to a full pull if the database is inaccessible.
+- **`gitmap probe` and `gitmap sf` help docs** — `gitmap/helptext/probe.md` and `gitmap/helptext/sf.md` (synopsis, flags, examples, 3–8 line realistic terminal simulation), discoverable via `gitmap help probe` / `gitmap help sf`.
+
+### Changed
+
+- **`constants_cli.go` size reduction** — extracted the `Shorthand*` group into `gitmap/constants/constants_clone.go` and the cross-command `Flag*` values into a new `gitmap/constants/constants_globalflags.go`. `constants_cli.go` is now 188 lines (under the 200-line guideline).
+
 ## v3.5.0 — (2026-04-19) — v15 Database Naming Alignment (Phase 1 complete)
 
 ### Changed
