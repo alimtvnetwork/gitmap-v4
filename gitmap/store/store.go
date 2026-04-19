@@ -172,9 +172,26 @@ func (db *DB) migrateSourceColumn() {
 	db.addColumnIfNotExists(constants.SQLAddSourceColumn)
 }
 
-// migrateNotesColumn adds the Notes column to existing Releases tables.
+// migrateNotesColumn adds the Notes column to existing Release tables.
 func (db *DB) migrateNotesColumn() {
 	db.addColumnIfNotExists(constants.SQLAddNotesColumn)
+}
+
+// preV15Phase2EnsureReleaseColumns ensures the legacy `Releases` table has
+// `Source` and `Notes` columns BEFORE the v15 rebuild copies it into
+// `Release`. Without this, very old installs (pre-Source/pre-Notes) would
+// fail the column-by-name SELECT in migrateV15Phase2. No-op when the legacy
+// table is absent (fresh install).
+func (db *DB) preV15Phase2EnsureReleaseColumns() {
+	if !db.tableExists("Releases") {
+		return
+	}
+
+	// Use raw ALTERs targeting the legacy plural table directly. The
+	// constants.SQLAddSourceColumn / SQLAddNotesColumn now target the new
+	// singular `Release` table and would fail here.
+	db.addColumnIfNotExists(`ALTER TABLE Releases ADD COLUMN Source TEXT DEFAULT 'release'`)
+	db.addColumnIfNotExists(`ALTER TABLE Releases ADD COLUMN Notes TEXT DEFAULT ''`)
 }
 
 // migrateRepoVersionColumns adds CurrentVersionTag and CurrentVersionNum to Repos.
