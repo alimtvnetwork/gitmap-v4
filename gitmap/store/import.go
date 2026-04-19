@@ -119,8 +119,7 @@ func (db *DB) importHistory(records []model.CommandHistoryRecord) error {
 // importBookmarks inserts bookmarks, ignoring duplicates by name.
 func (db *DB) importBookmarks(bookmarks []model.BookmarkRecord) error {
 	for _, b := range bookmarks {
-		_, err := db.conn.Exec(
-			"INSERT OR IGNORE INTO Bookmarks (Name, Command, Args, Flags) VALUES (?, ?, ?, ?)",
+		_, err := db.conn.Exec(constants.SQLImportInsertBookmark,
 			b.Name, b.Command, b.Args, b.Flags)
 		if err != nil {
 			return err
