@@ -8,14 +8,14 @@ import (
 	"github.com/user/gitmap/constants"
 )
 
-// TestSEOSQL_CreateTableContainsColumns verifies table schema.
+// TestSEOSQL_CreateTableContainsColumns verifies table schema (v15: CommitTemplate singular + CommitTemplateId PK).
 func TestSEOSQL_CreateTableContainsColumns(t *testing.T) {
-	sql := constants.SQLCreateCommitTemplates
+	sql := constants.SQLCreateCommitTemplate
 
-	required := []string{"Id", "Kind", "Template", "CreatedAt"}
+	required := []string{"CommitTemplateId", "Kind", "Template", "CreatedAt"}
 	for _, col := range required {
 		if !strings.Contains(sql, col) {
-			t.Errorf("expected SQLCreateCommitTemplates to contain column %q", col)
+			t.Errorf("expected SQLCreateCommitTemplate to contain column %q", col)
 		}
 	}
 }
@@ -120,9 +120,9 @@ func TestSEOMessages_ContainFormatVerbs(t *testing.T) {
 	}
 }
 
-// TestSEOTableName verifies the table name constant.
+// TestSEOTableName verifies the table name constant (v15: singular).
 func TestSEOTableName(t *testing.T) {
-	if constants.TableCommitTemplates != "CommitTemplates" {
-		t.Errorf("expected CommitTemplates, got %q", constants.TableCommitTemplates)
+	if constants.TableCommitTemplate != "CommitTemplate" {
+		t.Errorf("expected CommitTemplate, got %q", constants.TableCommitTemplate)
 	}
 }
