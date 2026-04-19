@@ -18,12 +18,15 @@ const TempReleaseMaxCount = 50
 // Temp-release placeholder.
 const TempReleasePlaceholder = "$$"
 
-// Table name.
-const TableTempReleases = "TempReleases"
+// TempRelease table (v15: singular + TempReleaseId PK).
+const TableTempRelease = "TempRelease"
 
-// SQL: create TempReleases table.
-const SQLCreateTempReleases = `CREATE TABLE IF NOT EXISTS TempReleases (
-	Id             INTEGER PRIMARY KEY AUTOINCREMENT,
+// Legacy plural retained for migration detection.
+const LegacyTableTempReleases = "TempReleases"
+
+// SQL: create TempRelease table (v15).
+const SQLCreateTempRelease = `CREATE TABLE IF NOT EXISTS TempRelease (
+	TempReleaseId  INTEGER PRIMARY KEY AUTOINCREMENT,
 	Branch         TEXT NOT NULL UNIQUE,
 	VersionPrefix  TEXT NOT NULL DEFAULT '',
 	SequenceNumber INTEGER NOT NULL DEFAULT 0,
@@ -32,27 +35,31 @@ const SQLCreateTempReleases = `CREATE TABLE IF NOT EXISTS TempReleases (
 	CreatedAt      TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
 )`
 
-// SQL: temp-release operations.
+// SQL: temp-release operations (v15).
 const (
-	SQLInsertTempRelease = `INSERT INTO TempReleases (Branch, VersionPrefix, SequenceNumber, CommitSha, CommitMessage)
+	SQLInsertTempRelease = `INSERT INTO TempRelease (Branch, VersionPrefix, SequenceNumber, CommitSha, CommitMessage)
 		VALUES (?, ?, ?, ?, ?)`
 
-	SQLSelectAllTempReleases = `SELECT Id, Branch, VersionPrefix, SequenceNumber, CommitSha, CommitMessage, CreatedAt
-		FROM TempReleases ORDER BY SequenceNumber`
+	SQLSelectAllTempReleases = `SELECT TempReleaseId, Branch, VersionPrefix, SequenceNumber, CommitSha, CommitMessage, CreatedAt
+		FROM TempRelease ORDER BY SequenceNumber`
 
-	SQLSelectMaxSeqByPrefix = `SELECT COALESCE(MAX(SequenceNumber), 0) FROM TempReleases WHERE VersionPrefix = ?`
+	SQLSelectMaxSeqByPrefix = `SELECT COALESCE(MAX(SequenceNumber), 0) FROM TempRelease WHERE VersionPrefix = ?`
 
-	SQLDeleteTempRelease = `DELETE FROM TempReleases WHERE Branch = ?`
+	SQLDeleteTempRelease = `DELETE FROM TempRelease WHERE Branch = ?`
 
-	SQLDeleteAllTempReleases = `DELETE FROM TempReleases`
+	SQLDeleteAllTempReleases = `DELETE FROM TempRelease`
 
-	SQLCountTempReleases = `SELECT COUNT(*) FROM TempReleases`
+	SQLCountTempReleases = `SELECT COUNT(*) FROM TempRelease`
 )
 
-// SQL: drop TempReleases table.
-const SQLDropTempReleases = "DROP TABLE IF EXISTS TempReleases"
+// SQL: drop TempRelease table (and legacy plural).
+const (
+	SQLDropTempRelease  = "DROP TABLE IF EXISTS TempRelease"
+	SQLDropTempReleases = "DROP TABLE IF EXISTS TempReleases" // legacy
+)
 
-// SQL: migrate Commit → CommitSha column in TempReleases.
+// SQL: migrate Commit → CommitSha column. Operates on legacy TempReleases —
+// the v15 rebuild copies the already-renamed column into TempRelease.
 const SQLMigrateTRCommitSha = `ALTER TABLE TempReleases RENAME COLUMN "Commit" TO CommitSha`
 
 // Temp-release flag descriptions.

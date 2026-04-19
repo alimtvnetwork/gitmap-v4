@@ -12,12 +12,15 @@ const (
 	SubCmdSSHConfig  = "config"
 )
 
-// SSH table name.
-const TableSSHKeys = "SSHKeys"
+// SshKey table (v15: singular + SshKeyId PK; abbreviation per v15: Ssh, not SSH).
+const TableSshKey = "SshKey"
 
-// SQL: create SSHKeys table.
-const SQLCreateSSHKeys = `CREATE TABLE IF NOT EXISTS SSHKeys (
-	Id          INTEGER PRIMARY KEY AUTOINCREMENT,
+// Legacy plural retained for migration detection.
+const LegacyTableSSHKeys = "SSHKeys"
+
+// SQL: create SshKey table (v15).
+const SQLCreateSshKey = `CREATE TABLE IF NOT EXISTS SshKey (
+	SshKeyId    INTEGER PRIMARY KEY AUTOINCREMENT,
 	Name        TEXT NOT NULL UNIQUE,
 	PrivatePath TEXT NOT NULL,
 	PublicKey   TEXT NOT NULL,
@@ -26,25 +29,28 @@ const SQLCreateSSHKeys = `CREATE TABLE IF NOT EXISTS SSHKeys (
 	CreatedAt   TEXT DEFAULT CURRENT_TIMESTAMP
 )`
 
-// SQL: SSH key operations.
+// SQL: SshKey operations (v15). Constant names retain SSH for callsite stability.
 const (
-	SQLInsertSSHKey = `INSERT INTO SSHKeys (Name, PrivatePath, PublicKey, Fingerprint, Email)
+	SQLInsertSSHKey = `INSERT INTO SshKey (Name, PrivatePath, PublicKey, Fingerprint, Email)
 		VALUES (?, ?, ?, ?, ?)`
 
-	SQLUpdateSSHKey = `UPDATE SSHKeys SET PrivatePath = ?, PublicKey = ?, Fingerprint = ?, Email = ?
+	SQLUpdateSSHKey = `UPDATE SshKey SET PrivatePath = ?, PublicKey = ?, Fingerprint = ?, Email = ?
 		WHERE Name = ?`
 
-	SQLSelectAllSSHKeys = `SELECT Id, Name, PrivatePath, PublicKey, Fingerprint, Email, CreatedAt
-		FROM SSHKeys ORDER BY Name`
+	SQLSelectAllSSHKeys = `SELECT SshKeyId, Name, PrivatePath, PublicKey, Fingerprint, Email, CreatedAt
+		FROM SshKey ORDER BY Name`
 
-	SQLSelectSSHKeyByName = `SELECT Id, Name, PrivatePath, PublicKey, Fingerprint, Email, CreatedAt
-		FROM SSHKeys WHERE Name = ?`
+	SQLSelectSSHKeyByName = `SELECT SshKeyId, Name, PrivatePath, PublicKey, Fingerprint, Email, CreatedAt
+		FROM SshKey WHERE Name = ?`
 
-	SQLDeleteSSHKeyByName = `DELETE FROM SSHKeys WHERE Name = ?`
+	SQLDeleteSSHKeyByName = `DELETE FROM SshKey WHERE Name = ?`
 )
 
-// SQL: drop SSHKeys table.
-const SQLDropSSHKeys = "DROP TABLE IF EXISTS SSHKeys"
+// SQL: drop SshKey table (and legacy plural).
+const (
+	SQLDropSshKey  = "DROP TABLE IF EXISTS SshKey"
+	SQLDropSSHKeys = "DROP TABLE IF EXISTS SSHKeys" // legacy
+)
 
 // SSH key generation defaults.
 const (
