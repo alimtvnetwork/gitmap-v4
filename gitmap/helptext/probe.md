@@ -8,6 +8,7 @@ Run the hybrid HEAD-then-clone version probe against one or every repo.
 gitmap probe                   # probe every repo in the database
 gitmap probe --all             # explicit form of the above
 gitmap probe <repo-path>       # probe a single repo by absolute path
+gitmap probe --all --json      # emit a JSON array (CI-friendly)
 ```
 
 ## What it does
@@ -70,7 +71,32 @@ $ gitmap probe E:\src\awesome-cli
 → Probing 1 repo(s)...
   ✓ awesome-cli → v2.4.0 (method=ls-remote)
 ✓ Probe complete: 1 available, 0 unchanged, 0 failed.
+
+$ gitmap probe --all --json
+[
+  {
+    "repoId": 17,
+    "slug": "awesome-cli",
+    "absolutePath": "E:\\src\\awesome-cli",
+    "nextVersionTag": "v2.4.0",
+    "nextVersionNum": 2004000,
+    "method": "ls-remote",
+    "isAvailable": true
+  },
+  {
+    "repoId": 18,
+    "slug": "private-repo",
+    "absolutePath": "E:\\src\\private-repo",
+    "method": "shallow-clone",
+    "isAvailable": false,
+    "error": "shallow clone failed: fatal: Authentication failed"
+  }
+]
 ```
+
+When `--json` is set, per-repo and start/done lines are suppressed —
+stdout contains only the JSON array, so it can be piped straight into
+`jq` or a CI parser. Errors still go to stderr.
 
 ## Database
 
