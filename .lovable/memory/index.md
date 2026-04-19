@@ -12,7 +12,7 @@ v15 DB schema: PascalCase + singular table names + `{TableName}Id` PKs + FKs mat
 Unified `.gitmap/` directory structure at repository root for all artifacts.
 Clone-next flattens by default (v2.75.0+): clones into base name folder, tracks versions in RepoVersionHistory.
 Completion generator uses marker-comment opt-in (v3.0.0+): `// gitmap:cmd top-level` on const block, `// gitmap:cmd skip` per spec. CI `generate-check` enforces drift.
-Current version: v3.9.0 (Phase 2.4 — `gitmap find-next`/`fn` reads latest VersionProbe rows; --scan-folder + --json filters).
+Current version: v3.10.0 (Phase 2.5 — `gitmap pull --parallel <N>` worker pool + `--only-available` filter via FindNext).
 
 ## Memories
 - [v15 Rename Progress](mem://features/v15-rename-progress) — Phase 1 complete: all 22 tables singular + {Table}Id PKs + IsDraft/IsPreRelease + CSharp→Csharp (v3.5.0)
