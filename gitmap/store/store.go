@@ -70,9 +70,11 @@ func openDBAt(dbPath string) (*DB, error) {
 
 // Migrate creates all required tables if they don't exist.
 //
-// Order: legacy UUID migration → v15 Repo rename → standard CREATE TABLE pass
-// → ALTER-based column additions → seed data. The v15 step is idempotent and
-// a no-op on fresh installs.
+// Order: legacy UUID migration → v15 Repo rename → v15 Phase 1.2 (Group/
+// Release/Alias/Bookmark) → v15 Phase 1.3 (Amendment/CommitTemplate/Setting/
+// SshKey/InstalledTool/TempRelease) → standard CREATE TABLE pass → ALTER-based
+// column additions → seed data. Every v15 step is idempotent and a no-op on
+// fresh installs.
 func (db *DB) Migrate() error {
 	db.migrateLegacyIDs()
 
@@ -80,16 +82,28 @@ func (db *DB) Migrate() error {
 		return fmt.Errorf(constants.ErrV15RepoMigration, err)
 	}
 
+	if err := db.migrateV15Phase2(); err != nil {
+		return fmt.Errorf(constants.ErrV15Phase2Migration, err)
+	}
+
+	// Phase 1.3 reads the legacy Commit column on TempReleases if it exists,
+	// so rename that column BEFORE the v15 rebuild copies the table.
+	db.migrateTRCommitSha()
+
+	if err := db.migrateV15Phase3(); err != nil {
+		return fmt.Errorf(constants.ErrV15Phase3Migration, err)
+	}
+
 	statements := []string{
 		constants.SQLCreateRepo,
 		constants.SQLCreateAbsPathIndex,
-		constants.SQLCreateGroups,
+		constants.SQLCreateGroup,
 		constants.SQLCreateGroupRepo,
-		constants.SQLCreateReleases,
-		constants.SQLCreateCommitTemplates,
-		constants.SQLCreateAmendments,
+		constants.SQLCreateRelease,
+		constants.SQLCreateCommitTemplate,
+		constants.SQLCreateAmendment,
 		constants.SQLCreateCommandHistory,
-		constants.SQLCreateBookmarks,
+		constants.SQLCreateBookmark,
 		constants.SQLCreateProjectTypes,
 		constants.SQLCreateDetectedProjects,
 		constants.SQLCreateGoProjectMetadata,
@@ -97,13 +111,13 @@ func (db *DB) Migrate() error {
 		constants.SQLCreateCSharpProjectMeta,
 		constants.SQLCreateCSharpProjectFiles,
 		constants.SQLCreateCSharpKeyFiles,
-		constants.SQLCreateSettings,
-		constants.SQLCreateAliases,
+		constants.SQLCreateSetting,
+		constants.SQLCreateAlias,
 		constants.SQLCreateZipGroups,
 		constants.SQLCreateZipGroupItems,
-		constants.SQLCreateSSHKeys,
-		constants.SQLCreateTempReleases,
-		constants.SQLCreateInstalledTools,
+		constants.SQLCreateSshKey,
+		constants.SQLCreateTempRelease,
+		constants.SQLCreateInstalledTool,
 		constants.SQLCreateTaskType,
 		constants.SQLCreatePendingTask,
 		constants.SQLCreateCompletedTask,
@@ -119,7 +133,6 @@ func (db *DB) Migrate() error {
 	db.migrateSourceColumn()
 	db.migrateNotesColumn()
 	db.migrateZipGroupItemPaths()
-	db.migrateTRCommitSha()
 	db.migratePendingTaskColumns()
 	db.migrateRepoVersionColumns()
 
