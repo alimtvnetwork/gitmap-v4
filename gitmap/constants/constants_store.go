@@ -198,4 +198,5 @@ const (
 	ErrV15RepoCountMismatch  = "v15 Repo migration count mismatch: old=%d new=%d"
 	ErrV15Phase2Migration    = "v15 Phase 1.2 migration failed: %v"
 	ErrV15Phase3Migration    = "v15 Phase 1.3 migration failed: %v"
+	ErrV15Phase4Migration    = "v15 Phase 1.4 migration failed: %v"
 )
