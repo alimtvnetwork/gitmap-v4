@@ -1,9 +1,9 @@
 ---
-title: GitMap Core Schema (Simplified)
+title: GitMap Core Schema (Simplified) — v15 Phase 1.1
 ---
 erDiagram
-    Repos {
-        INTEGER Id PK
+    Repo {
+        INTEGER RepoId PK
         TEXT Slug
         TEXT RepoName
         TEXT HttpsUrl
@@ -27,7 +27,7 @@ erDiagram
         TEXT CreatedAt
     }
 
-    GroupRepos {
+    GroupRepo {
         INTEGER GroupId FK
         INTEGER RepoId FK
     }
@@ -66,8 +66,8 @@ erDiagram
         TEXT CreatedAt
     }
 
-    Repos ||--o{ GroupRepos : "belongs to"
-    Groups ||--o{ GroupRepos : "contains"
-    Repos ||--o{ Aliases : "has"
-    Repos ||--o{ RepoVersionHistory : "tracks"
-    Repos ||--o{ Releases : "published"
+    Repo ||--o{ GroupRepo : "belongs to"
+    Groups ||--o{ GroupRepo : "contains"
+    Repo ||--o{ Aliases : "has"
+    Repo ||--o{ RepoVersionHistory : "tracks"
+    Repo ||--o{ Releases : "published"
