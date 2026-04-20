@@ -80,6 +80,32 @@ const (
 `
 )
 
+// Release-body pinned-install snippet.
+//
+// AppendPinnedInstallSnippet renders this block into the GitHub release
+// body so anyone copying from the release page installs EXACTLY that
+// tag — no "latest" lookup, no -v<N> sibling-repo discovery.
+//
+// Spec: spec/07-generic-release/08-pinned-version-install-snippet.md
+const (
+	ReleaseSnippetMarker   = "<!-- gitmap-pinned-install-snippet:%s -->"
+	ReleaseSnippetTemplate = "<!-- gitmap-pinned-install-snippet:%s -->\n" +
+		"## Install this exact version (%s)\n\n" +
+		"Copy-paste these snippets to install **this exact tag**. " +
+		"They skip the GitHub `latest` lookup and the versioned-repo discovery probe.\n\n" +
+		"**Windows (PowerShell)**\n" +
+		"```powershell\n" +
+		"$ver = '%s'\n" +
+		"$installer = irm https://raw.githubusercontent.com/alimtvnetwork/gitmap-v4/main/gitmap/scripts/install.ps1\n" +
+		"& ([scriptblock]::Create($installer)) -Version $ver -NoDiscovery\n" +
+		"```\n\n" +
+		"**Linux / macOS (bash)**\n" +
+		"```bash\n" +
+		"curl -fsSL https://raw.githubusercontent.com/alimtvnetwork/gitmap-v4/main/gitmap/scripts/install.sh \\\n" +
+		"  | bash -s -- --version %s --no-discovery\n" +
+		"```\n"
+)
+
 // Release rollback messages.
 const (
 	MsgRollbackStart  = "\n  ⚠ Push failed — rolling back local branch and tag...\n"
