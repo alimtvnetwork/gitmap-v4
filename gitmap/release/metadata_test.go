@@ -28,8 +28,8 @@ func TestWriteAndReadReleaseMeta(t *testing.T) {
 		Commit:       "abc123",
 		Tag:          "v1.2.3",
 		Assets:       []string{"./dist"},
-		Draft:        false,
-		PreRelease:   false,
+		IsDraft:      false,
+		IsPreRelease: false,
 		CreatedAt:    "2026-03-05T12:00:00Z",
 		IsLatest:     true,
 	}
