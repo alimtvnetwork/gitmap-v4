@@ -30,10 +30,14 @@ const (
 
 func TestTopLevelCmdRegistryMatchesAST(t *testing.T) {
 	astNames := collectTopLevelCmdNamesFromAST(t)
-	registry := topLevelCmds()
 
-	missingFromRegistry := diffSets(astNames, registry)
-	extraInRegistry := diffSets(registry, astNames)
+	registryNames := map[string]struct{}{}
+	for name := range topLevelCmds() {
+		registryNames[name] = struct{}{}
+	}
+
+	missingFromRegistry := diffNameSets(astNames, registryNames)
+	extraInRegistry := diffNameSets(registryNames, astNames)
 
 	if len(missingFromRegistry) > 0 {
 		t.Errorf("AST has %d top-level Cmd constant(s) missing from topLevelCmds() registry:\n  %s\n"+
@@ -129,8 +133,8 @@ func parityCommentHas(cg *ast.CommentGroup, needle string) bool {
 	return false
 }
 
-// diffSets returns sorted keys present in a but absent from b.
-func diffSets(a, b map[string]struct{}) []string {
+// diffNameSets returns sorted keys present in a but absent from b.
+func diffNameSets(a, b map[string]struct{}) []string {
 	var out []string
 	for k := range a {
 		if _, ok := b[k]; !ok {
@@ -141,14 +145,6 @@ func diffSets(a, b map[string]struct{}) []string {
 
 	return out
 }
-
-// Overload to accept map[string]string (registry) — Go has no generics-free
-// covariance, so we provide a small adapter via interface{}.
-func init() { _ = diffSetsAdapter }
-
-// diffSetsAdapter is a compile-time witness that diffSets is invoked through
-// the typed wrappers below; it has no runtime effect.
-var diffSetsAdapter = struct{}{}
 
 // constantsDirForParityTest resolves this package's directory so the test
 // runs identically from `go test ./...` and from inside an IDE.
