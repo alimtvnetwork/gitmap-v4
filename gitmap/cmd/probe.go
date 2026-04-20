@@ -124,7 +124,7 @@ func runProbeLoop(db *store.DB, targets []model.ScanRecord, jsonOut bool) ([]pro
 			recordProbeResult(db, repo, result)
 			entries = append(entries, makeProbeEntry(repo, result))
 			if !jsonOut {
-				fmt.Fprintf(os.Stderr, result.Error+"\n")
+				fmt.Fprintf(os.Stderr, "%s\n", result.Error)
 			}
 			failed++
 			continue

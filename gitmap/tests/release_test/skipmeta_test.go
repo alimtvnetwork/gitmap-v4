@@ -127,7 +127,7 @@ func TestSkipMeta_ExecuteFromBranchSetsFlag(t *testing.T) {
 	opts := release.Options{
 		Assets:   "",
 		Notes:    "",
-		Draft:    false,
+		IsDraft:  false,
 		SkipMeta: true,
 	}
 
