@@ -1,5 +1,11 @@
 # Changelog
 
+## v3.11.1 — (2026-04-20) — Alias-collision CI guard
+
+### Added
+
+- **Alias-collision uniqueness test** — extended `gitmap/constants/cmd_constants_test.go` with `TestTopLevelCmdAliasesAreUnique`, which iterates every top-level `Cmd*` constant and fails when two distinct identifiers share the same short-form value (string length ≤ 2). Catches future regressions like a hypothetical `CmdFooAlias = "ls"` shadowing the existing `CmdListAlias`, before they reach the build phase. Companion `TestTopLevelCmdConstantsAreUnique` covers full-length command-name collisions. Manual `topLevelCmds()` registry is the source of truth and excludes anything marked `// gitmap:cmd skip`.
+
 ## v3.11.0 — (2026-04-19) — Constants hygiene + Phase 1.4 migration fix
 
 ### Fixed

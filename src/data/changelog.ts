@@ -6,6 +6,13 @@ export interface ChangelogEntry {
 
 export const changelog: ChangelogEntry[] = [
   {
+    version: "v3.11.1",
+    date: "2026-04-20",
+    items: [
+      "Added alias-collision CI guard: `TestTopLevelCmdAliasesAreUnique` in `gitmap/constants/cmd_constants_test.go` walks every top-level `Cmd*` constant and fails when two distinct identifiers claim the same short-form value (string length ≤ 2), e.g. a future `CmdFooAlias = \"ls\"` shadowing `CmdListAlias`. Companion `TestTopLevelCmdConstantsAreUnique` covers full-length command-name collisions. Manual `topLevelCmds()` registry is the source of truth and skips anything marked `// gitmap:cmd skip`.",
+    ],
+  },
+  {
     version: "v3.11.0",
     date: "2026-04-19",
     items: [
