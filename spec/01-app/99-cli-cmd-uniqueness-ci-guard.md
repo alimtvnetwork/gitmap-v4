@@ -70,9 +70,16 @@ When adding a new top-level CLI command:
 5. Run the completion generator (`go generate ./completion/...` or whatever the `Makefile` target is) — must produce no diff.
 6. If you intentionally introduced a duplicate that the dispatcher handles via a subcommand group, mark the constant with `// gitmap:cmd skip` and DO NOT add it to `topLevelCmds()`.
 
-## 5. Future hardening (not yet wired)
+## 5. AST-derived parity test (registry drift guard)
 
-A third test using `go/parser` could walk `constants_cli.go` directly, build the registry by reading every `const` declaration that lacks a `// gitmap:cmd skip` marker, and assert exact equality with the manual `topLevelCmds()` map. This would make registry drift impossible. Tracked as a follow-up — the manual registry is acceptable today because the two existing tests catch the most damaging failure mode (collisions between registered constants) and because the completion-generator drift check provides a partial safety net for missing registrations.
+Implemented in `gitmap/constants/cmd_constants_parity_test.go` as `TestTopLevelCmdRegistryMatchesAST`. The test uses `go/parser` to walk every `constants_*.go` file in the package, collects every `Cmd*` string constant declared inside a const block marked `// gitmap:cmd top-level` (excluding per-spec `// gitmap:cmd skip` lines), and asserts the resulting set of identifier names is **exactly equal** to the keys of the manual `topLevelCmds()` map.
+
+Two failure modes are reported with actionable messages:
+
+* **Missing from registry** — A new top-level `Cmd*` constant exists in the AST but was not appended to `topLevelCmds()`. Fix: add the row, or mark the constant `// gitmap:cmd skip` if it should be excluded.
+* **Extra in registry** — A row in `topLevelCmds()` references a constant that no longer exists under a `// gitmap:cmd top-level` block. Fix: remove the row, or restore the constant under an opted-in block.
+
+Combined with §2.1 / §2.2, this closes the drift gap: the registry can no longer fall out of sync with the source of truth, which means the value-uniqueness and alias-uniqueness tests can never be silently bypassed by an unregistered constant.
 
 ## 6. History
 
@@ -80,4 +87,4 @@ A third test using `go/parser` could walk `constants_cli.go` directly, build the
 |---|---|
 | v3.11.0 | Initial `TestTopLevelCmdConstantsAreUnique` test + `topLevelCmds()` registry. Caught the `CmdReleaseAlias` and `cd`/`go` redeclaration bugs that motivated this guard. |
 | v3.11.1 | Added `TestTopLevelCmdAliasesAreUnique` to specifically guard the short-alias namespace (length `<= 2`). |
-| v3.12.0 | This spec doc written so NEA can extend the guard without re-deriving its rationale. |
+| v3.12.0 | Spec doc written so NEA can extend the guard without re-deriving its rationale. Added `TestTopLevelCmdRegistryMatchesAST` (AST-derived parity test) — registry drift is now impossible. |
