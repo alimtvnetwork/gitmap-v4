@@ -1,5 +1,7 @@
 # Command Help System
 
+> **Related:** [99-cli-cmd-uniqueness-ci-guard.md](./99-cli-cmd-uniqueness-ci-guard.md) — when you add a new help file here you are almost certainly also adding a new top-level `Cmd*` constant. Follow the 6-step handoff checklist in §4 of the uniqueness spec so the dispatcher, registry, and completion generator stay in sync.
+
 ## Overview
 
 Every gitmap command supports a `--help` flag that prints detailed

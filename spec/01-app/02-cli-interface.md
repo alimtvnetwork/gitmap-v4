@@ -1,5 +1,7 @@
 # CLI Interface
 
+> **Related:** [99-cli-cmd-uniqueness-ci-guard.md](./99-cli-cmd-uniqueness-ci-guard.md) — every top-level `Cmd*` constant added below must satisfy the uniqueness CI guard (full-name + short-alias collisions) and be registered in `topLevelCmds()`. Read that doc before adding or renaming a command.
+
 ## Commands
 
 ### `gitmap scan [dir]` (alias: `s`)
