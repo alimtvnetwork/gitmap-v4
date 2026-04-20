@@ -129,6 +129,12 @@ if ($env:INSTALLER_DELEGATED -eq "1") {
     Write-Host "  [discovery] INSTALLER_DELEGATED=1; skipping discovery (loop guard)"
 } elseif ($NoDiscovery) {
     Write-Host "  [discovery] -NoDiscovery set; skipping probe"
+} elseif (-not [string]::IsNullOrWhiteSpace($Version)) {
+    # Pinned-version contract (spec/07-generic-release/08-pinned-version-install-snippet.md):
+    # When -Version is supplied, install EXACTLY that version from the embedded $Repo.
+    # Skip versioned-repo discovery so a snippet copied from a v3.x release page
+    # never silently jumps to the v4 repo's latest tag.
+    Write-Host "  [discovery] -Version $Version pinned; skipping repo probe (exact-version install)"
 } else {
     $effective = Resolve-EffectiveRepo $Repo $ProbeCeiling
     if ($effective -ne $Repo) {
