@@ -36,6 +36,7 @@ func uploadToGitHub(v Version, assets []string, opts Options) {
 	}
 
 	body := DetectChangelog()
+	body = AppendPinnedInstallSnippet(body, v.String())
 	ghRelease, err := CreateGitHubRelease(owner, repo, v.String(), name, body, token, opts.IsDraft)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "  ✗ GitHub release creation failed: %v\n", err)
