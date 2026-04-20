@@ -1,5 +1,22 @@
 # Changelog
 
+## v3.12.1 — (2026-04-20) — AST registry parity + spec cross-links + legacy-field test cleanup
+
+### Added
+
+- **AST-derived `topLevelCmds()` registry parity test** — `gitmap/constants/cmd_constants_parity_test.go` adds `TestTopLevelCmdRegistryMatchesAST`, which uses `go/parser` to walk every `gitmap/constants/constants_*.go`, collects every `Cmd*` constant declared inside a `// gitmap:cmd top-level` block (minus those tagged `// gitmap:cmd skip`), and asserts the resulting set is exactly equal to the manual `topLevelCmds()` registry consumed by `TestTopLevelCmdConstantsAreUnique` / `TestTopLevelCmdAliasesAreUnique`. The registry can no longer drift silently — adding a new top-level `Cmd*` without registering it (or vice versa) fails CI with a clear "missing from registry" / "registered but not declared" diff.
+- **Spec cross-links from CLI overview** — `spec/01-app/02-cli-interface.md` and `spec/01-app/38-command-help.md` gained a `> **Related:**` callout under the H1 pointing at `spec/01-app/99-cli-cmd-uniqueness-ci-guard.md`, so future contributors discover the uniqueness contract and the 6-step handoff checklist directly from the CLI overview and the help-system spec.
+- **Spec §5 implementation note** — `spec/01-app/99-cli-cmd-uniqueness-ci-guard.md` updated to mark the AST parity test as implemented (no longer "future hardening") with the file path and v3.12.1 history entry.
+
+### Fixed
+
+- **Stale `Draft` / `PreRelease` `ReleaseMeta` / `Options` field references in tests** — `gitmap/release/metadata_test.go` and `gitmap/tests/release_test/skipmeta_test.go` still constructed `ReleaseMeta{Draft: …, PreRelease: …}` and `release.Options{Draft: …}` using the pre-v15 field names, breaking `go vet` / `go build` with `unknown field Draft in struct literal`. Renamed both to the v15 `IsDraft` / `IsPreRelease` form, matching every production caller. The legacy-JSON compat shim in `release/metadata.go::ReadReleaseMeta` (which still reads the old `draft` / `preRelease` JSON keys) is intentionally untouched and remains the supported migration path for v3.4.x metadata files on disk.
+- **`go vet` `non-constant format string`** in `gitmap/cmd/probe.go:127` — `fmt.Fprintf(os.Stderr, result.Error+"\n")` triggered the printf-check because the format string was constructed at runtime from a struct field. Reshaped the call to `fmt.Fprintf(os.Stderr, "%s\n", result.Error)` so the format string is a compile-time constant.
+
+### Verified
+
+- Full-repo audit for residual legacy-field callers: every `\.(Draft|PreRelease)\b` and `^\s*(Draft|PreRelease)\s*:` match outside of (a) `release.Version.PreRelease` (semver suffix — different struct), (b) `store/migrate_v15phase5.go` (the rename migration itself), (c) `release/metadata.go::ReadReleaseMeta` (the JSON backward-compat overlay), and (d) `--draft` user-facing CLI flag strings was confirmed to be either intentional or already migrated. No further call sites need updating.
+
 ## v3.12.0 — (2026-04-20) — Pinned-version release snippet + gitmap-v4 rename
 
 ### Added
