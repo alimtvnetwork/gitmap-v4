@@ -8,8 +8,8 @@ development workflow, coding standards, and pull-request requirements.
 ## Getting Started
 
 ```bash
-git clone https://github.com/alimtvnetwork/gitmap-v3.git
-cd gitmap-v3
+git clone https://github.com/alimtvnetwork/gitmap-v4.git
+cd gitmap-v4
 ./setup.sh          # installs hooks, linter, and downloads Go deps
 ```
 

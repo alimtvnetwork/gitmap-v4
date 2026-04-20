@@ -64,7 +64,7 @@ const (
 
 // Install hint constants (printed after release for gitmap repos).
 const (
-	GitmapRepoPrefix     = "github.com/alimtvnetwork/gitmap-v3"
+	GitmapRepoPrefix     = "github.com/alimtvnetwork/gitmap-v4"
 	GitmapRepoOwner      = "github.com/alimtvnetwork/"
 	GitmapRepoNamePrefix = "gitmap-v"
 	MsgInstallHintHeader = `
@@ -72,11 +72,11 @@ const (
   📦 Install gitmap %s
 `
 	MsgInstallHintWindows = `  🪟 Windows (PowerShell)
-     irm https://raw.githubusercontent.com/alimtvnetwork/gitmap-v3/main/gitmap/scripts/install.ps1 | iex
+     irm https://raw.githubusercontent.com/alimtvnetwork/gitmap-v4/main/gitmap/scripts/install.ps1 | iex
 `
 	MsgInstallHintUnix = `
   🐧 Linux / macOS
-     curl -fsSL https://raw.githubusercontent.com/alimtvnetwork/gitmap-v3/main/gitmap/scripts/install.sh | sh
+     curl -fsSL https://raw.githubusercontent.com/alimtvnetwork/gitmap-v4/main/gitmap/scripts/install.sh | sh
 `
 )
 

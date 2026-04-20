@@ -346,7 +346,7 @@ export const changelog: ChangelogEntry[] = [
       "Multi-package-manager support: Chocolatey, Winget, Apt, Snap, Brew, Dnf, Pacman.",
       "Version string compiled from parsed major/minor/patch/build parts during save for comparison support.",
       "Reorganized `gitmap help` with `--compact` flag and 17 categorized command groups.",
-      "Repository renamed from `git-repo-navigator` to `gitmap-v3`.",
+      "Repository renamed from `git-repo-navigator` to `gitmap-v4`.",
     ],
   },
   {
@@ -359,7 +359,7 @@ export const changelog: ChangelogEntry[] = [
       "Added Quick Start section with common command examples at the top of help output.",
       "Each group header includes a hint to run commands with `--help` or `-h` for detailed usage.",
       "Modularized help across `rootusage.go`, `rootusagecompact.go`, `rootusageflags.go`, and `constants_helpgroups.go`.",
-      "Repository renamed from `git-repo-navigator` to `gitmap-v3`; all URLs, scripts, and references updated.",
+      "Repository renamed from `git-repo-navigator` to `gitmap-v4`; all URLs, scripts, and references updated.",
     ],
   },
   {
