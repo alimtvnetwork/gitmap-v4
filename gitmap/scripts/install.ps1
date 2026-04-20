@@ -19,13 +19,13 @@
     Force architecture (amd64, arm64). Default: auto-detect.
 
 .EXAMPLE
-    irm https://raw.githubusercontent.com/alimtvnetwork/gitmap-v3/main/gitmap/scripts/install.ps1 | iex
+    irm https://raw.githubusercontent.com/alimtvnetwork/gitmap-v4/main/gitmap/scripts/install.ps1 | iex
 
 .EXAMPLE
     & ./install.ps1 -Version v2.48.0
 
 .NOTES
-    Repository: https://github.com/alimtvnetwork/gitmap-v3
+    Repository: https://github.com/alimtvnetwork/gitmap-v4
 #>
 
 param(
@@ -41,7 +41,7 @@ param(
 $ErrorActionPreference = "Stop"
 $ProgressPreference = "SilentlyContinue"
 
-$Repo = "alimtvnetwork/gitmap-v3"
+$Repo = "alimtvnetwork/gitmap-v4"
 $BinaryName = "gitmap.exe"
 $InstallerVersion = "1.0.0"
 
@@ -129,6 +129,12 @@ if ($env:INSTALLER_DELEGATED -eq "1") {
     Write-Host "  [discovery] INSTALLER_DELEGATED=1; skipping discovery (loop guard)"
 } elseif ($NoDiscovery) {
     Write-Host "  [discovery] -NoDiscovery set; skipping probe"
+} elseif (-not [string]::IsNullOrWhiteSpace($Version)) {
+    # Pinned-version contract (spec/07-generic-release/08-pinned-version-install-snippet.md):
+    # When -Version is supplied, install EXACTLY that version from the embedded $Repo.
+    # Skip versioned-repo discovery so a snippet copied from a v3.x release page
+    # never silently jumps to the v4 repo's latest tag.
+    Write-Host "  [discovery] -Version $Version pinned; skipping repo probe (exact-version install)"
 } else {
     $effective = Resolve-EffectiveRepo $Repo $ProbeCeiling
     if ($effective -ne $Repo) {
@@ -298,7 +304,7 @@ function Install-Binary([string]$zipPath, [string]$installDir) {
     New-Item -ItemType Directory -Path $extractDir -Force | Out-Null
     Expand-Archive -Path $zipPath -DestinationPath $extractDir -Force
 
-    # Match exact names OR versioned patterns like gitmap-v3.54.6-windows-amd64.exe
+    # Match exact names OR versioned patterns like gitmap-v4.54.6-windows-amd64.exe
     $candidateNames = @(
         $BinaryName,
         [System.IO.Path]::GetFileNameWithoutExtension($BinaryName),

@@ -45,21 +45,21 @@ in place and URLs are cloned into a folder named after the repo.
 
 ### Example 1: Move one local folder into another
 
-    gitmap mv ./gitmap-v3 ./gitmap-v4
+    gitmap mv ./gitmap-v4 ./gitmap-v4
 
 **Output:**
 
-    [mv] resolving LEFT : ./gitmap-v3 (folder)
+    [mv] resolving LEFT : ./gitmap-v4 (folder)
     [mv] resolving RIGHT : ./gitmap-v4 (folder)
     [mv] copying files LEFT -> RIGHT (excluding .git/) ...
     [mv]   copied 142 files
-    [mv] deleting LEFT (./gitmap-v3) ...
+    [mv] deleting LEFT (./gitmap-v4) ...
     [mv]   deleted
     [mv] done
 
 ### Example 2: Move a local folder into a remote repo (clone + push)
 
-    gitmap mv ./gitmap-v3 https://github.com/owner/gitmap-v4
+    gitmap mv ./gitmap-v4 https://github.com/owner/gitmap-v4
 
 **Output:**
 
@@ -70,20 +70,20 @@ in place and URLs are cloned into a folder named after the repo.
     [mv] copying files LEFT -> RIGHT (excluding .git/) ...
     [mv]   copied 142 files
     [mv] committing in https://github.com/owner/gitmap-v4 ...
-    [mv]   commit a1b2c3d "gitmap mv from ./gitmap-v3"
+    [mv]   commit a1b2c3d "gitmap mv from ./gitmap-v4"
     [mv] pushing https://github.com/owner/gitmap-v4 ...
     [mv]   push OK
     [mv] done
 
 ### Example 3: Preview without writing anything
 
-    gitmap mv ./gitmap-v3 ./gitmap-v4 --dry-run
+    gitmap mv ./gitmap-v4 ./gitmap-v4 --dry-run
 
 **Output:**
 
     [mv] copying files LEFT -> RIGHT (excluding .git/) ...
     [mv]   copied 142 files
-    [mv] deleting LEFT (./gitmap-v3) ...
+    [mv] deleting LEFT (./gitmap-v4) ...
     [mv]   deleted
     [mv] done
 

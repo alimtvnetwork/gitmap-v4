@@ -18,7 +18,7 @@ fi
 # gitmap installer for Linux and macOS
 #
 # Usage:
-#   curl -fsSL https://raw.githubusercontent.com/alimtvnetwork/gitmap-v3/main/gitmap/scripts/install.sh | bash
+#   curl -fsSL https://raw.githubusercontent.com/alimtvnetwork/gitmap-v4/main/gitmap/scripts/install.sh | bash
 #
 # Options:
 #   --version <tag>    Install a specific version (e.g. v2.55.0). Default: latest.
@@ -34,7 +34,7 @@ fi
 
 set -euo pipefail
 
-REPO="alimtvnetwork/gitmap-v3"
+REPO="alimtvnetwork/gitmap-v4"
 BINARY_NAME="gitmap"
 TMP_DIR=""
 APP_DIR=""
@@ -761,6 +761,12 @@ main() {
         printf '  [discovery] INSTALLER_DELEGATED=1; skipping discovery (loop guard)\n' >&2
     elif [ "${NO_DISCOVERY}" = "true" ]; then
         printf '  [discovery] --no-discovery set; skipping probe\n' >&2
+    elif [ -n "${VERSION}" ]; then
+        # Pinned-version contract (spec/07-generic-release/08-pinned-version-install-snippet.md):
+        # When --version is supplied, install EXACTLY that version from the embedded REPO.
+        # Skip versioned-repo discovery so a snippet copied from a v3.x release page
+        # never silently jumps to the v4 repo's latest tag.
+        printf '  [discovery] --version %s pinned; skipping repo probe (exact-version install)\n' "${VERSION}" >&2
     else
         local effective_repo
         effective_repo="$(resolve_effective_repo "${REPO}" "${PROBE_CEILING}")"
